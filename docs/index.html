@@ -5,418 +5,115 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Cooking Assistant - Demo</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #f97316 0%, #ea580c 50%, #c2410c 100%);
             min-height: 100vh;
             padding: 20px;
         }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        header {
-            text-align: center;
-            padding: 30px 0;
-            color: white;
-        }
-
-        header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-
-        header p {
-            opacity: 0.9;
-            font-size: 1.1rem;
-        }
-
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 20px;
-        }
-
-        @media (max-width: 900px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .chat-container {
-            background: white;
+        .container { max-width: 1000px; margin: 0 auto; }
+        header { text-align: center; padding: 30px 0; color: white; }
+        .lang-selector { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1rem; }
+        .lang-btn {
+            padding: 0.4rem 1rem;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid transparent;
             border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-            overflow: hidden;
-        }
-
-        .chat-header {
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            padding: 20px;
             color: white;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
         }
-
-        .chat-header h2 {
-            font-size: 1.3rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .chat-messages {
-            height: 500px;
-            overflow-y: auto;
-            padding: 20px;
-            background: #fffbf7;
-        }
-
-        .message {
-            margin-bottom: 15px;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .message.user {
-            text-align: right;
-        }
-
-        .message-content {
-            display: inline-block;
-            padding: 12px 18px;
-            border-radius: 18px;
-            max-width: 85%;
-            text-align: left;
-            line-height: 1.6;
-        }
-
-        .message.user .message-content {
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            color: white;
-            border-bottom-right-radius: 4px;
-        }
-
-        .message.bot .message-content {
-            background: white;
-            color: #333;
-            border-bottom-left-radius: 4px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .message.bot .message-content h1,
-        .message.bot .message-content h2,
-        .message.bot .message-content h3 {
-            color: #ea580c;
-            margin: 15px 0 10px 0;
-        }
-
-        .message.bot .message-content h1 { font-size: 1.3rem; }
-        .message.bot .message-content h2 { font-size: 1.15rem; }
+        .lang-btn:hover { background: rgba(255,255,255,0.3); }
+        .lang-btn.active { background: white; color: #f97316; }
+        header h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        header p { opacity: 0.9; font-size: 1.1rem; }
+        .main-content { display: grid; grid-template-columns: 1fr 350px; gap: 20px; }
+        @media (max-width: 900px) { .main-content { grid-template-columns: 1fr; } }
+        .chat-container { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); overflow: hidden; }
+        .chat-header { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); padding: 20px; color: white; }
+        .chat-header h2 { font-size: 1.3rem; display: flex; align-items: center; gap: 10px; }
+        .chat-messages { height: 500px; overflow-y: auto; padding: 20px; background: #fffbf7; }
+        .message { margin-bottom: 15px; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .message.user { text-align: right; }
+        .message-content { display: inline-block; padding: 12px 18px; border-radius: 18px; max-width: 85%; text-align: left; line-height: 1.6; }
+        .message.user .message-content { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; border-bottom-right-radius: 4px; }
+        .message.bot .message-content { background: white; color: #333; border-bottom-left-radius: 4px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .message.bot .message-content h2, .message.bot .message-content h3 { color: #ea580c; margin: 15px 0 10px 0; }
+        .message.bot .message-content h2 { font-size: 1.2rem; }
         .message.bot .message-content h3 { font-size: 1rem; }
-
-        .message.bot .message-content ul,
-        .message.bot .message-content ol {
-            margin: 10px 0 10px 20px;
-        }
-
-        .message.bot .message-content li {
-            margin: 5px 0;
-        }
-
-        .message.bot .message-content strong {
-            color: #c2410c;
-        }
-
-        .chat-input-container {
-            padding: 20px;
-            background: white;
-            border-top: 1px solid #fed7aa;
-        }
-
-        .quick-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 15px;
-        }
-
-        .quick-btn {
-            padding: 8px 14px;
-            background: #fff7ed;
-            border: 1px solid #fed7aa;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            color: #9a3412;
-            transition: all 0.2s;
-        }
-
-        .quick-btn:hover {
-            background: #ffedd5;
-            border-color: #f97316;
-        }
-
-        .input-wrapper {
-            display: flex;
-            gap: 10px;
-        }
-
-        #messageInput {
-            flex: 1;
-            padding: 15px 20px;
-            border: 2px solid #fed7aa;
-            border-radius: 25px;
-            font-size: 1rem;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        #messageInput:focus {
-            border-color: #f97316;
-        }
-
-        #sendBtn {
-            padding: 15px 30px;
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            color: white;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        #sendBtn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(249, 115, 22, 0.4);
-        }
-
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .recipe-card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-
-        .recipe-card h3 {
-            color: #ea580c;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .recipe-item {
-            padding: 12px;
-            background: #fff7ed;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid transparent;
-        }
-
-        .recipe-item:hover {
-            border-color: #f97316;
-            transform: translateX(5px);
-        }
-
-        .recipe-item h4 {
-            color: #9a3412;
-            margin-bottom: 5px;
-            font-size: 0.95rem;
-        }
-
-        .recipe-item p {
-            color: #78716c;
-            font-size: 0.8rem;
-        }
-
-        .recipe-meta {
-            display: flex;
-            gap: 10px;
-            margin-top: 5px;
-            font-size: 0.75rem;
-            color: #a8a29e;
-        }
-
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 30px;
-        }
-
-        .feature-card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-
-        .feature-icon {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-
-        .feature-card h3 {
-            color: #9a3412;
-            margin-bottom: 8px;
-            font-size: 1rem;
-        }
-
-        .feature-card p {
-            color: #78716c;
-            font-size: 0.85rem;
-            line-height: 1.4;
-        }
-
-        footer {
-            text-align: center;
-            padding: 30px;
-            color: white;
-            opacity: 0.9;
-        }
-
-        footer a {
-            color: white;
-            text-decoration: underline;
-        }
-
-        .typing-indicator {
-            display: flex;
-            gap: 5px;
-            padding: 15px;
-        }
-
-        .typing-indicator span {
-            width: 8px;
-            height: 8px;
-            background: #f97316;
-            border-radius: 50%;
-            animation: bounce 1.4s infinite ease-in-out;
-        }
-
+        .message.bot .message-content ul, .message.bot .message-content ol { margin: 10px 0 10px 20px; }
+        .message.bot .message-content li { margin: 5px 0; }
+        .message.bot .message-content strong { color: #c2410c; }
+        .chat-input-container { padding: 20px; background: white; border-top: 1px solid #fed7aa; }
+        .quick-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
+        .quick-btn { padding: 8px 14px; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 20px; cursor: pointer; font-size: 0.85rem; color: #9a3412; transition: all 0.2s; }
+        .quick-btn:hover { background: #ffedd5; border-color: #f97316; }
+        .input-wrapper { display: flex; gap: 10px; }
+        #messageInput { flex: 1; padding: 15px 20px; border: 2px solid #fed7aa; border-radius: 25px; font-size: 1rem; outline: none; }
+        #messageInput:focus { border-color: #f97316; }
+        #sendBtn { padding: 15px 30px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; border: none; border-radius: 25px; cursor: pointer; font-size: 1rem; font-weight: 600; }
+        #sendBtn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(249, 115, 22, 0.4); }
+        .sidebar { display: flex; flex-direction: column; gap: 20px; }
+        .recipe-card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .recipe-card h3 { color: #ea580c; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        .recipe-item { padding: 12px; background: #fff7ed; border-radius: 10px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; }
+        .recipe-item:hover { border-color: #f97316; transform: translateX(5px); }
+        .recipe-item h4 { color: #9a3412; margin-bottom: 5px; font-size: 0.95rem; }
+        .recipe-item p { color: #78716c; font-size: 0.8rem; }
+        .recipe-meta { display: flex; gap: 10px; margin-top: 5px; font-size: 0.75rem; color: #a8a29e; }
+        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 30px; }
+        .feature-card { background: white; border-radius: 15px; padding: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .feature-icon { font-size: 2.5rem; margin-bottom: 10px; }
+        .feature-card h3 { color: #9a3412; margin-bottom: 8px; font-size: 1rem; }
+        .feature-card p { color: #78716c; font-size: 0.85rem; line-height: 1.4; }
+        footer { text-align: center; padding: 30px; color: white; opacity: 0.9; }
+        footer a { color: white; text-decoration: underline; }
+        .typing-indicator { display: flex; gap: 5px; padding: 15px; }
+        .typing-indicator span { width: 8px; height: 8px; background: #f97316; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out; }
         .typing-indicator span:nth-child(1) { animation-delay: 0s; }
         .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
         .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-
-        @keyframes bounce {
-            0%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-10px); }
-        }
+        @keyframes bounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-10px); } }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>👨‍🍳 AI Cooking Assistant</h1>
-            <p>Your intelligent kitchen companion powered by LangChain</p>
+            <div class="lang-selector">
+                <button class="lang-btn active" onclick="setLanguage('en')">EN</button>
+                <button class="lang-btn" onclick="setLanguage('ko')">KO</button>
+                <button class="lang-btn" onclick="setLanguage('ja')">JA</button>
+            </div>
+            <h1 id="title">AI Cooking Assistant</h1>
+            <p id="subtitle">Your intelligent kitchen companion powered by LangChain</p>
         </header>
 
         <div class="main-content">
             <div class="chat-container">
                 <div class="chat-header">
-                    <h2>🍳 Let's Cook Something Delicious!</h2>
+                    <h2 id="chat-title"></h2>
                 </div>
-
-                <div class="chat-messages" id="chatMessages">
-                    <div class="message bot">
-                        <div class="message-content">
-                            <h2>👨‍🍳 Welcome to Your Cooking Assistant!</h2>
-                            <p>I can help you with:</p>
-                            <ul>
-                                <li><strong>Recipes</strong> - Search by cuisine, ingredient, or dietary needs</li>
-                                <li><strong>Cooking Tips</strong> - Techniques, timing, and temperatures</li>
-                                <li><strong>Substitutions</strong> - Find ingredient alternatives</li>
-                                <li><strong>Conversions</strong> - Cups, grams, tablespoons, and more</li>
-                                <li><strong>Meal Planning</strong> - Create weekly menus</li>
-                            </ul>
-                            <p style="margin-top: 15px;">What would you like to cook today?</p>
-                        </div>
-                    </div>
-                </div>
-
+                <div class="chat-messages" id="chatMessages"></div>
                 <div class="chat-input-container">
-                    <div class="quick-actions">
-                        <button class="quick-btn" onclick="sendQuickMessage('Show me Italian recipes')">🇮🇹 Italian</button>
-                        <button class="quick-btn" onclick="sendQuickMessage('Show me Korean recipes')">🇰🇷 Korean</button>
-                        <button class="quick-btn" onclick="sendQuickMessage('Quick easy recipes')">⚡ Quick & Easy</button>
-                        <button class="quick-btn" onclick="sendQuickMessage('Vegetarian recipes')">🥬 Vegetarian</button>
-                        <button class="quick-btn" onclick="sendQuickMessage('What can I substitute for eggs?')">🔄 Substitutes</button>
-                        <button class="quick-btn" onclick="sendQuickMessage('Measurement conversions')">📏 Conversions</button>
-                    </div>
+                    <div class="quick-actions" id="quick-actions"></div>
                     <div class="input-wrapper">
-                        <input type="text" id="messageInput" placeholder="Ask about recipes, techniques, substitutions..." onkeypress="handleKeyPress(event)">
-                        <button id="sendBtn" onclick="sendMessage()">Cook!</button>
+                        <input type="text" id="messageInput" onkeypress="handleKeyPress(event)">
+                        <button id="sendBtn" onclick="sendMessage()"></button>
                     </div>
                 </div>
             </div>
 
             <div class="sidebar">
                 <div class="recipe-card">
-                    <h3>🌟 Featured Recipes</h3>
-                    <div class="recipe-item" onclick="sendQuickMessage('How do I make Kimchi Fried Rice?')">
-                        <h4>Kimchi Fried Rice</h4>
-                        <p>Korean comfort food at its best</p>
-                        <div class="recipe-meta">
-                            <span>🇰🇷 Korean</span>
-                            <span>⏱️ 25 min</span>
-                        </div>
-                    </div>
-                    <div class="recipe-item" onclick="sendQuickMessage('Show me the Pasta Aglio e Olio recipe')">
-                        <h4>Pasta Aglio e Olio</h4>
-                        <p>Classic Italian simplicity</p>
-                        <div class="recipe-meta">
-                            <span>🇮🇹 Italian</span>
-                            <span>⏱️ 20 min</span>
-                        </div>
-                    </div>
-                    <div class="recipe-item" onclick="sendQuickMessage('How do I make Pad Thai?')">
-                        <h4>Pad Thai</h4>
-                        <p>Thailand's famous noodle dish</p>
-                        <div class="recipe-meta">
-                            <span>🇹🇭 Thai</span>
-                            <span>⏱️ 35 min</span>
-                        </div>
-                    </div>
-                    <div class="recipe-item" onclick="sendQuickMessage('Give me the Vegetable Curry recipe')">
-                        <h4>Vegetable Curry</h4>
-                        <p>Rich and aromatic</p>
-                        <div class="recipe-meta">
-                            <span>🇮🇳 Indian</span>
-                            <span>⏱️ 50 min</span>
-                        </div>
-                    </div>
+                    <h3 id="featured-title"></h3>
+                    <div id="featured-recipes"></div>
                 </div>
-
                 <div class="recipe-card">
-                    <h3>🍽️ Cuisines</h3>
-                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                        <button class="quick-btn" onclick="sendQuickMessage('Japanese recipes')">🇯🇵 Japanese</button>
-                        <button class="quick-btn" onclick="sendQuickMessage('Mexican recipes')">🇲🇽 Mexican</button>
-                        <button class="quick-btn" onclick="sendQuickMessage('French recipes')">🇫🇷 French</button>
-                        <button class="quick-btn" onclick="sendQuickMessage('Thai recipes')">🇹🇭 Thai</button>
-                    </div>
+                    <h3 id="cuisines-title"></h3>
+                    <div id="cuisines-btns" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
                 </div>
             </div>
         </div>
@@ -424,311 +121,355 @@
         <div class="features">
             <div class="feature-card">
                 <div class="feature-icon">📖</div>
-                <h3>Recipe Database</h3>
-                <p>Browse recipes from 10+ cuisines with detailed instructions</p>
+                <h3 id="feature1-title"></h3>
+                <p id="feature1-desc"></p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">⏱️</div>
-                <h3>Cooking Times</h3>
-                <p>Get perfect timing for meats, eggs, pasta, and more</p>
+                <h3 id="feature2-title"></h3>
+                <p id="feature2-desc"></p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">🔄</div>
-                <h3>Substitutions</h3>
-                <p>Find alternatives for any ingredient</p>
+                <h3 id="feature3-title"></h3>
+                <p id="feature3-desc"></p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">📊</div>
-                <h3>Nutrition Info</h3>
-                <p>Track calories and macros for each recipe</p>
+                <h3 id="feature4-title"></h3>
+                <p id="feature4-desc"></p>
             </div>
         </div>
 
         <footer>
-            <p>Built with LangChain & Flask | <a href="https://github.com/yoon-k/langchain-cooking-assistant">View on GitHub</a></p>
+            <p id="footer-text"></p>
         </footer>
     </div>
 
     <script>
+        let currentLang = 'en';
         const chatMessages = document.getElementById('chatMessages');
         const messageInput = document.getElementById('messageInput');
 
-        // Recipe database for demo
-        const recipes = {
-            kimchi: `<h2>🍚 Kimchi Fried Rice</h2>
-                <p><em>Korean comfort food at its best - quick, flavorful, and perfect for using leftover rice.</em></p>
-                <p><strong>Cuisine:</strong> Korean | <strong>Difficulty:</strong> Easy<br>
-                <strong>Prep:</strong> 10 min | <strong>Cook:</strong> 15 min | <strong>Servings:</strong> 2</p>
-                <h3>Ingredients</h3>
-                <ul>
-                    <li>3 cups cooked rice (day-old preferred)</li>
-                    <li>1 cup aged kimchi, chopped</li>
-                    <li>2 tbsp kimchi juice</li>
-                    <li>100g pork belly or bacon, diced</li>
-                    <li>2 tbsp vegetable oil</li>
-                    <li>1 tbsp sesame oil</li>
-                    <li>1 tbsp soy sauce</li>
-                    <li>2 green onions, chopped</li>
-                    <li>2 eggs for topping</li>
-                </ul>
-                <h3>Instructions</h3>
-                <ol>
-                    <li>Heat oil in a large pan over high heat</li>
-                    <li>Add diced pork and cook until crispy, 3-4 minutes</li>
-                    <li>Add chopped kimchi and stir-fry for 2-3 minutes</li>
-                    <li>Add cold rice, breaking up any clumps</li>
-                    <li>Pour in kimchi juice and soy sauce, mix well</li>
-                    <li>Stir-fry for 3-4 minutes until rice is heated</li>
-                    <li>Drizzle sesame oil, add green onions</li>
-                    <li>Top with a fried egg and serve!</li>
-                </ol>
-                <p>💡 <strong>Tip:</strong> Day-old refrigerated rice works best!</p>`,
-
-            aglio: `<h2>🍝 Pasta Aglio e Olio</h2>
-                <p><em>Classic Italian pasta with garlic and olive oil - simple, quick, and incredibly delicious.</em></p>
-                <p><strong>Cuisine:</strong> Italian | <strong>Difficulty:</strong> Easy<br>
-                <strong>Prep:</strong> 5 min | <strong>Cook:</strong> 15 min | <strong>Servings:</strong> 4</p>
-                <h3>Ingredients</h3>
-                <ul>
-                    <li>400g spaghetti</li>
-                    <li>1/2 cup extra virgin olive oil</li>
-                    <li>8 cloves garlic, thinly sliced</li>
-                    <li>1/2 tsp red pepper flakes</li>
-                    <li>1/4 cup fresh parsley, chopped</li>
-                    <li>1/4 cup Parmesan cheese</li>
-                </ul>
-                <h3>Instructions</h3>
-                <ol>
-                    <li>Cook spaghetti in salted water until al dente</li>
-                    <li>Heat olive oil over medium-low heat</li>
-                    <li>Add garlic, cook slowly until golden (4-5 min)</li>
-                    <li>Add red pepper flakes, remove from heat</li>
-                    <li>Reserve 1 cup pasta water before draining</li>
-                    <li>Add pasta to garlic oil, toss well</li>
-                    <li>Add pasta water as needed for silky sauce</li>
-                    <li>Finish with parsley and Parmesan</li>
-                </ol>
-                <p>💡 <strong>Tip:</strong> Don't let the garlic brown - it will taste bitter!</p>`,
-
-            padthai: `<h2>🍜 Pad Thai</h2>
-                <p><em>Thailand's famous stir-fried noodle dish with perfect sweet, sour, and savory balance.</em></p>
-                <p><strong>Cuisine:</strong> Thai | <strong>Difficulty:</strong> Medium<br>
-                <strong>Prep:</strong> 20 min | <strong>Cook:</strong> 15 min | <strong>Servings:</strong> 4</p>
-                <h3>Ingredients</h3>
-                <ul>
-                    <li>250g rice noodles (flat)</li>
-                    <li>200g shrimp or chicken</li>
-                    <li>2 eggs</li>
-                    <li>1 cup bean sprouts</li>
-                    <li>2 tbsp tamarind paste</li>
-                    <li>2 tbsp fish sauce</li>
-                    <li>2 tbsp palm sugar</li>
-                    <li>1/4 cup crushed peanuts</li>
-                </ul>
-                <h3>Instructions</h3>
-                <ol>
-                    <li>Soak rice noodles in warm water for 30-40 minutes</li>
-                    <li>Mix tamarind, fish sauce, and sugar for sauce</li>
-                    <li>Scramble eggs in wok, set aside</li>
-                    <li>Stir-fry protein until cooked, set aside</li>
-                    <li>Add noodles and sauce, toss for 2-3 minutes</li>
-                    <li>Return eggs and protein to wok</li>
-                    <li>Add bean sprouts, toss briefly</li>
-                    <li>Top with peanuts and lime wedges</li>
-                </ol>
-                <p>💡 <strong>Tip:</strong> High heat is essential for authentic wok hei flavor!</p>`,
-
-            curry: `<h2>🍛 Vegetable Curry</h2>
-                <p><em>Rich and aromatic vegetable curry with coconut milk - perfect comfort food.</em></p>
-                <p><strong>Cuisine:</strong> Indian | <strong>Difficulty:</strong> Medium<br>
-                <strong>Prep:</strong> 20 min | <strong>Cook:</strong> 30 min | <strong>Servings:</strong> 4</p>
-                <p><strong>Dietary:</strong> Vegan, Vegetarian, Gluten-Free, Dairy-Free</p>
-                <h3>Ingredients</h3>
-                <ul>
-                    <li>1 can chickpeas, drained</li>
-                    <li>2 cups cauliflower florets</li>
-                    <li>2 medium potatoes, cubed</li>
-                    <li>2 cups fresh spinach</li>
-                    <li>400ml coconut milk</li>
-                    <li>1 can diced tomatoes</li>
-                    <li>2 tbsp curry powder</li>
-                    <li>1 tsp garam masala</li>
-                </ul>
-                <h3>Instructions</h3>
-                <ol>
-                    <li>Sauté onion until softened, 5 minutes</li>
-                    <li>Add garlic and ginger, cook 1 minute</li>
-                    <li>Add spices, stir for 30 seconds</li>
-                    <li>Add potatoes and cauliflower, coat with spices</li>
-                    <li>Pour in tomatoes and coconut milk, simmer</li>
-                    <li>Cook 15-20 minutes until vegetables tender</li>
-                    <li>Add chickpeas and spinach, cook 5 more minutes</li>
-                    <li>Serve over basmati rice with naan</li>
-                </ol>
-                <p>💡 <strong>Tip:</strong> Toast spices in oil briefly to bloom their flavors!</p>`
+        const i18n = {
+            en: {
+                title: "AI Cooking Assistant",
+                subtitle: "Your intelligent kitchen companion powered by LangChain",
+                chatTitle: "🍳 Let's Cook Something Delicious!",
+                placeholder: "Ask about recipes, techniques, substitutions...",
+                send: "Cook!",
+                featuredTitle: "🌟 Featured Recipes",
+                cuisinesTitle: "🍽️ Cuisines",
+                feature1Title: "Recipe Database",
+                feature1Desc: "Browse recipes from 10+ cuisines with detailed instructions",
+                feature2Title: "Cooking Times",
+                feature2Desc: "Get perfect timing for meats, eggs, pasta, and more",
+                feature3Title: "Substitutions",
+                feature3Desc: "Find alternatives for any ingredient",
+                feature4Title: "Nutrition Info",
+                feature4Desc: "Track calories and macros for each recipe",
+                footer: "Built with LangChain & Flask | <a href=\"https://github.com/yoon-k/langchain-cooking-assistant\">View on GitHub</a>",
+                quickButtons: [
+                    { text: "🇮🇹 Italian", msg: "Show me Italian recipes" },
+                    { text: "🇰🇷 Korean", msg: "Show me Korean recipes" },
+                    { text: "⚡ Quick & Easy", msg: "Quick easy recipes" },
+                    { text: "🥬 Vegetarian", msg: "Vegetarian recipes" },
+                    { text: "🔄 Substitutes", msg: "What can I substitute for eggs?" },
+                    { text: "📏 Conversions", msg: "Measurement conversions" }
+                ],
+                cuisineButtons: [
+                    { text: "🇯🇵 Japanese", msg: "Japanese recipes" },
+                    { text: "🇲🇽 Mexican", msg: "Mexican recipes" },
+                    { text: "🇫🇷 French", msg: "French recipes" },
+                    { text: "🇹🇭 Thai", msg: "Thai recipes" }
+                ],
+                featuredRecipes: [
+                    { name: "Kimchi Fried Rice", desc: "Korean comfort food at its best", cuisine: "🇰🇷 Korean", time: "25 min", msg: "How do I make Kimchi Fried Rice?" },
+                    { name: "Pasta Aglio e Olio", desc: "Classic Italian simplicity", cuisine: "🇮🇹 Italian", time: "20 min", msg: "Show me the Pasta Aglio e Olio recipe" },
+                    { name: "Pad Thai", desc: "Thailand's famous noodle dish", cuisine: "🇹🇭 Thai", time: "35 min", msg: "How do I make Pad Thai?" },
+                    { name: "Vegetable Curry", desc: "Rich and aromatic", cuisine: "🇮🇳 Indian", time: "50 min", msg: "Give me the Vegetable Curry recipe" }
+                ]
+            },
+            ko: {
+                title: "AI 요리 어시스턴트",
+                subtitle: "LangChain으로 구동되는 지능형 주방 도우미",
+                chatTitle: "🍳 맛있는 요리를 만들어 봅시다!",
+                placeholder: "레시피, 기술, 대체재에 대해 질문하세요...",
+                send: "요리!",
+                featuredTitle: "🌟 추천 레시피",
+                cuisinesTitle: "🍽️ 요리 종류",
+                feature1Title: "레시피 데이터베이스",
+                feature1Desc: "10개 이상의 요리 문화에서 상세한 조리법을 찾아보세요",
+                feature2Title: "조리 시간",
+                feature2Desc: "고기, 계란, 파스타 등의 완벽한 타이밍을 얻으세요",
+                feature3Title: "대체재",
+                feature3Desc: "모든 재료의 대체품을 찾으세요",
+                feature4Title: "영양 정보",
+                feature4Desc: "각 레시피의 칼로리와 영양소를 추적하세요",
+                footer: "LangChain & Flask로 제작 | <a href=\"https://github.com/yoon-k/langchain-cooking-assistant\">GitHub에서 보기</a>",
+                quickButtons: [
+                    { text: "🇮🇹 이탈리안", msg: "이탈리안 레시피 보여줘" },
+                    { text: "🇰🇷 한식", msg: "한국 레시피 보여줘" },
+                    { text: "⚡ 빠르고 쉬운", msg: "빠르고 쉬운 레시피" },
+                    { text: "🥬 채식", msg: "채식 레시피" },
+                    { text: "🔄 대체재", msg: "계란 대신 뭘 쓸 수 있나요?" },
+                    { text: "📏 단위 변환", msg: "계량 단위 변환" }
+                ],
+                cuisineButtons: [
+                    { text: "🇯🇵 일식", msg: "일본 레시피" },
+                    { text: "🇲🇽 멕시칸", msg: "멕시코 레시피" },
+                    { text: "🇫🇷 프랑스", msg: "프랑스 레시피" },
+                    { text: "🇹🇭 태국", msg: "태국 레시피" }
+                ],
+                featuredRecipes: [
+                    { name: "김치볶음밥", desc: "최고의 한국식 컴포트 푸드", cuisine: "🇰🇷 한식", time: "25분", msg: "김치볶음밥 어떻게 만들어요?" },
+                    { name: "파스타 알리오 올리오", desc: "클래식 이탈리안의 단순함", cuisine: "🇮🇹 이탈리안", time: "20분", msg: "알리오 올리오 레시피 보여줘" },
+                    { name: "팟타이", desc: "태국의 유명한 볶음 면", cuisine: "🇹🇭 태국", time: "35분", msg: "팟타이 어떻게 만들어요?" },
+                    { name: "채소 카레", desc: "풍부하고 향기로운", cuisine: "🇮🇳 인도", time: "50분", msg: "채소 카레 레시피 알려줘" }
+                ]
+            },
+            ja: {
+                title: "AI クッキングアシスタント",
+                subtitle: "LangChainで動作するインテリジェントなキッチンコンパニオン",
+                chatTitle: "🍳 おいしい料理を作りましょう！",
+                placeholder: "レシピ、テクニック、代替品について質問してください...",
+                send: "料理！",
+                featuredTitle: "🌟 おすすめレシピ",
+                cuisinesTitle: "🍽️ 料理の種類",
+                feature1Title: "レシピデータベース",
+                feature1Desc: "10以上の料理文化から詳細な調理法を閲覧",
+                feature2Title: "調理時間",
+                feature2Desc: "肉、卵、パスタなどの完璧なタイミングを取得",
+                feature3Title: "代替品",
+                feature3Desc: "あらゆる材料の代替品を見つける",
+                feature4Title: "栄養情報",
+                feature4Desc: "各レシピのカロリーと栄養素を追跡",
+                footer: "LangChain & Flaskで構築 | <a href=\"https://github.com/yoon-k/langchain-cooking-assistant\">GitHubで見る</a>",
+                quickButtons: [
+                    { text: "🇮🇹 イタリアン", msg: "イタリアンレシピを見せて" },
+                    { text: "🇰🇷 韓国料理", msg: "韓国料理レシピを見せて" },
+                    { text: "⚡ 簡単", msg: "簡単なレシピ" },
+                    { text: "🥬 ベジタリアン", msg: "ベジタリアンレシピ" },
+                    { text: "🔄 代替品", msg: "卵の代わりに何が使えますか？" },
+                    { text: "📏 単位変換", msg: "計量単位の変換" }
+                ],
+                cuisineButtons: [
+                    { text: "🇯🇵 和食", msg: "日本料理レシピ" },
+                    { text: "🇲🇽 メキシカン", msg: "メキシコ料理レシピ" },
+                    { text: "🇫🇷 フレンチ", msg: "フランス料理レシピ" },
+                    { text: "🇹🇭 タイ料理", msg: "タイ料理レシピ" }
+                ],
+                featuredRecipes: [
+                    { name: "キムチチャーハン", desc: "最高の韓国コンフォートフード", cuisine: "🇰🇷 韓国", time: "25分", msg: "キムチチャーハンの作り方は？" },
+                    { name: "パスタ アーリオ・オーリオ", desc: "クラシックイタリアンのシンプルさ", cuisine: "🇮🇹 イタリアン", time: "20分", msg: "アーリオオーリオのレシピを見せて" },
+                    { name: "パッタイ", desc: "タイの有名な炒め麺", cuisine: "🇹🇭 タイ", time: "35分", msg: "パッタイの作り方は？" },
+                    { name: "野菜カレー", desc: "リッチで香り高い", cuisine: "🇮🇳 インド", time: "50分", msg: "野菜カレーのレシピを教えて" }
+                ]
+            }
         };
 
         const responses = {
-            italian: `<h2>🇮🇹 Italian Recipes</h2>
-                <p>Found 2 Italian recipes:</p>
-                <h3>Pasta Aglio e Olio</h3>
-                <p>Classic garlic and olive oil pasta - simple and delicious!</p>
-                <p>⏱️ 20 min | 📊 Easy | 🍽️ 4 servings</p>
-                <h3>Caesar Salad</h3>
-                <p>Crisp romaine with creamy dressing and croutons</p>
-                <p>⏱️ 25 min | 📊 Easy | 🍽️ 4 servings</p>
-                <p><em>Ask me for the full recipe of any dish!</em></p>`,
-
-            korean: `<h2>🇰🇷 Korean Recipes</h2>
-                <p>Found 1 Korean recipe:</p>
-                <h3>Kimchi Fried Rice (Kimchi Bokkeumbap)</h3>
-                <p>Quick and flavorful fried rice with aged kimchi - perfect for using leftover rice!</p>
-                <p>⏱️ 25 min | 📊 Easy | 🍽️ 2 servings</p>
-                <p><em>Ask me for the full recipe!</em></p>`,
-
-            quick: `<h2>⚡ Quick & Easy Recipes</h2>
-                <p>Found 5 easy recipes under 30 minutes:</p>
-                <ul>
-                    <li><strong>Pasta Aglio e Olio</strong> - 20 min, Italian</li>
-                    <li><strong>Kimchi Fried Rice</strong> - 25 min, Korean</li>
-                    <li><strong>Miso Soup</strong> - 20 min, Japanese</li>
-                    <li><strong>Caesar Salad</strong> - 25 min, American</li>
-                    <li><strong>Greek Salad</strong> - 15 min, Mediterranean</li>
-                </ul>
-                <p><em>Ask me for any full recipe!</em></p>`,
-
-            vegetarian: `<h2>🥬 Vegetarian Recipes</h2>
-                <p>Found 5 vegetarian recipes:</p>
-                <ul>
-                    <li><strong>Pasta Aglio e Olio</strong> - Italian classic</li>
-                    <li><strong>Vegetable Curry</strong> - Indian comfort food</li>
-                    <li><strong>Miso Soup</strong> - Japanese traditional</li>
-                    <li><strong>Caesar Salad</strong> - American favorite</li>
-                    <li><strong>Greek Salad</strong> - Mediterranean fresh</li>
-                </ul>
-                <p><em>Ask me for any full recipe!</em></p>`,
-
-            substitutes: `<h2>🔄 Egg Substitutes</h2>
-                <p>Here are great alternatives for eggs:</p>
-                <ul>
-                    <li><strong>Flax Egg</strong> - 1 tbsp ground flax + 3 tbsp water (wait 5 min)</li>
-                    <li><strong>Chia Egg</strong> - 1 tbsp chia seeds + 3 tbsp water</li>
-                    <li><strong>Mashed Banana</strong> - 1/4 cup per egg (adds sweetness)</li>
-                    <li><strong>Applesauce</strong> - 1/4 cup per egg</li>
-                    <li><strong>Aquafaba</strong> - 3 tbsp (chickpea water)</li>
-                </ul>
-                <p>💡 <strong>Note:</strong> Amounts may need adjustment based on recipe!</p>`,
-
-            conversions: `<h2>📏 Cooking Measurement Conversions</h2>
-                <h3>Volume</h3>
-                <table style="width:100%; text-align:left;">
-                    <tr><td>1 cup</td><td>= 240 ml / 16 tbsp</td></tr>
-                    <tr><td>1 tablespoon</td><td>= 15 ml / 3 tsp</td></tr>
-                    <tr><td>1 teaspoon</td><td>= 5 ml</td></tr>
-                </table>
-                <h3>Weight</h3>
-                <table style="width:100%; text-align:left;">
-                    <tr><td>1 ounce</td><td>= 28 grams</td></tr>
-                    <tr><td>1 pound</td><td>= 454 grams</td></tr>
-                </table>
-                <h3>Temperature</h3>
-                <table style="width:100%; text-align:left;">
-                    <tr><td>350°F</td><td>= 175°C (moderate)</td></tr>
-                    <tr><td>400°F</td><td>= 200°C (hot)</td></tr>
-                    <tr><td>425°F</td><td>= 220°C (very hot)</td></tr>
-                </table>`,
-
-            japanese: `<h2>🇯🇵 Japanese Recipes</h2>
-                <h3>Miso Soup</h3>
-                <p>Traditional Japanese soup with tofu and wakame seaweed</p>
-                <p>⏱️ 20 min | 📊 Easy | 🍽️ 4 servings</p>
-                <p><em>Dietary: Vegetarian, Vegan, Low-Carb</em></p>
-                <p>Ask for the full recipe!</p>`,
-
-            mexican: `<h2>🇲🇽 Mexican Recipes</h2>
-                <h3>Tacos al Pastor</h3>
-                <p>Traditional marinated pork tacos with pineapple and fresh toppings</p>
-                <p>⏱️ 50 min | 📊 Medium | 🍽️ 6 servings</p>
-                <p><em>Dietary: Dairy-Free, Gluten-Free</em></p>
-                <p>Ask for the full recipe!</p>`,
-
-            french: `<h2>🇫🇷 French Recipes</h2>
-                <h3>Classic French Omelette</h3>
-                <p>Perfectly cooked, silky French-style omelette with soft, creamy curds</p>
-                <p>⏱️ 10 min | 📊 Medium | 🍽️ 1 serving</p>
-                <p><em>Dietary: Vegetarian, Low-Carb, Keto, Gluten-Free</em></p>
-                <p>Ask for the full recipe!</p>`,
-
-            thai: `<h2>🇹🇭 Thai Recipes</h2>
-                <h3>Pad Thai</h3>
-                <p>Thailand's famous stir-fried noodles with perfect balance of flavors</p>
-                <p>⏱️ 35 min | 📊 Medium | 🍽️ 4 servings</p>
-                <p>Ask for the full recipe!</p>`,
-
-            default: `<h2>👨‍🍳 Cooking Assistant</h2>
-                <p>I can help you with:</p>
-                <ul>
-                    <li><strong>🍳 Recipes</strong> - Search by cuisine, ingredient, or dietary needs</li>
-                    <li><strong>🔄 Substitutions</strong> - Find ingredient alternatives</li>
-                    <li><strong>📏 Conversions</strong> - Cups, grams, temperatures</li>
-                    <li><strong>⏱️ Timing</strong> - Cooking times for meats, eggs, etc.</li>
-                    <li><strong>📊 Nutrition</strong> - Calories and macros</li>
-                </ul>
-                <p><strong>Try asking:</strong></p>
-                <ul>
-                    <li>"Show me Italian recipes"</li>
-                    <li>"How do I make Pad Thai?"</li>
-                    <li>"What can I substitute for eggs?"</li>
-                </ul>`
+            en: {
+                welcome: `<h2>👨‍🍳 Welcome to Your Cooking Assistant!</h2>
+                    <p>I can help you with:</p>
+                    <ul>
+                        <li><strong>Recipes</strong> - Search by cuisine, ingredient, or dietary needs</li>
+                        <li><strong>Cooking Tips</strong> - Techniques, timing, and temperatures</li>
+                        <li><strong>Substitutions</strong> - Find ingredient alternatives</li>
+                        <li><strong>Conversions</strong> - Cups, grams, tablespoons, and more</li>
+                        <li><strong>Meal Planning</strong> - Create weekly menus</li>
+                    </ul>
+                    <p style="margin-top: 15px;">What would you like to cook today?</p>`,
+                kimchi: `<h2>🍚 Kimchi Fried Rice</h2>
+                    <p><em>Korean comfort food at its best - quick, flavorful, and perfect for using leftover rice.</em></p>
+                    <p><strong>Cuisine:</strong> Korean | <strong>Difficulty:</strong> Easy<br><strong>Prep:</strong> 10 min | <strong>Cook:</strong> 15 min | <strong>Servings:</strong> 2</p>
+                    <h3>Ingredients</h3>
+                    <ul><li>3 cups cooked rice (day-old preferred)</li><li>1 cup aged kimchi, chopped</li><li>2 tbsp kimchi juice</li><li>100g pork belly or bacon</li><li>2 tbsp vegetable oil</li><li>1 tbsp sesame oil</li><li>1 tbsp soy sauce</li><li>2 green onions, chopped</li><li>2 eggs for topping</li></ul>
+                    <h3>Instructions</h3>
+                    <ol><li>Heat oil in a large pan over high heat</li><li>Add diced pork and cook until crispy</li><li>Add chopped kimchi and stir-fry for 2-3 minutes</li><li>Add cold rice, breaking up any clumps</li><li>Pour in kimchi juice and soy sauce, mix well</li><li>Drizzle sesame oil, add green onions</li><li>Top with a fried egg and serve!</li></ol>
+                    <p>💡 <strong>Tip:</strong> Day-old refrigerated rice works best!</p>`,
+                italian: `<h2>🇮🇹 Italian Recipes</h2>
+                    <p>Found 2 Italian recipes:</p>
+                    <h3>Pasta Aglio e Olio</h3>
+                    <p>Classic garlic and olive oil pasta - simple and delicious!</p>
+                    <p>⏱️ 20 min | 📊 Easy | 🍽️ 4 servings</p>
+                    <h3>Caesar Salad</h3>
+                    <p>Crisp romaine with creamy dressing and croutons</p>
+                    <p>⏱️ 25 min | 📊 Easy | 🍽️ 4 servings</p>
+                    <p><em>Ask me for the full recipe of any dish!</em></p>`,
+                korean: `<h2>🇰🇷 Korean Recipes</h2>
+                    <h3>Kimchi Fried Rice (Kimchi Bokkeumbap)</h3>
+                    <p>Quick and flavorful fried rice with aged kimchi - perfect for using leftover rice!</p>
+                    <p>⏱️ 25 min | 📊 Easy | 🍽️ 2 servings</p>
+                    <p><em>Ask me for the full recipe!</em></p>`,
+                substitutes: `<h2>🔄 Egg Substitutes</h2>
+                    <ul><li><strong>Flax Egg</strong> - 1 tbsp ground flax + 3 tbsp water</li><li><strong>Chia Egg</strong> - 1 tbsp chia seeds + 3 tbsp water</li><li><strong>Mashed Banana</strong> - 1/4 cup per egg</li><li><strong>Applesauce</strong> - 1/4 cup per egg</li><li><strong>Aquafaba</strong> - 3 tbsp (chickpea water)</li></ul>`,
+                conversions: `<h2>📏 Cooking Measurement Conversions</h2>
+                    <h3>Volume</h3><p>1 cup = 240 ml = 16 tbsp<br>1 tablespoon = 15 ml = 3 tsp<br>1 teaspoon = 5 ml</p>
+                    <h3>Weight</h3><p>1 ounce = 28 grams<br>1 pound = 454 grams</p>
+                    <h3>Temperature</h3><p>350°F = 175°C<br>400°F = 200°C<br>425°F = 220°C</p>`,
+                default: `<h2>👨‍🍳 Cooking Assistant</h2>
+                    <p>I can help you with:</p>
+                    <ul><li><strong>🍳 Recipes</strong> - Search by cuisine or ingredient</li><li><strong>🔄 Substitutions</strong> - Find alternatives</li><li><strong>📏 Conversions</strong> - Cups, grams, temperatures</li><li><strong>⏱️ Timing</strong> - Cooking times</li></ul>
+                    <p><strong>Try:</strong> "Show me Italian recipes" or "What can I substitute for eggs?"</p>`
+            },
+            ko: {
+                welcome: `<h2>👨‍🍳 요리 어시스턴트에 오신 것을 환영합니다!</h2>
+                    <p>도와드릴 수 있는 것:</p>
+                    <ul>
+                        <li><strong>레시피</strong> - 요리 문화, 재료 또는 식이요법으로 검색</li>
+                        <li><strong>요리 팁</strong> - 기술, 타이밍, 온도</li>
+                        <li><strong>대체재</strong> - 재료 대체품 찾기</li>
+                        <li><strong>단위 변환</strong> - 컵, 그램, 스푼 등</li>
+                        <li><strong>식단 계획</strong> - 주간 메뉴 만들기</li>
+                    </ul>
+                    <p style="margin-top: 15px;">오늘 무엇을 요리하고 싶으신가요?</p>`,
+                kimchi: `<h2>🍚 김치볶음밥</h2>
+                    <p><em>최고의 한국식 컴포트 푸드 - 빠르고, 맛있고, 남은 밥 활용에 완벽합니다.</em></p>
+                    <p><strong>요리:</strong> 한식 | <strong>난이도:</strong> 쉬움<br><strong>준비:</strong> 10분 | <strong>조리:</strong> 15분 | <strong>인분:</strong> 2인분</p>
+                    <h3>재료</h3>
+                    <ul><li>밥 3공기 (하루 지난 밥 추천)</li><li>묵은 김치 1컵, 썰기</li><li>김치 국물 2큰술</li><li>삼겹살 또는 베이컨 100g</li><li>식용유 2큰술</li><li>참기름 1큰술</li><li>간장 1큰술</li><li>파 2줄기, 송송 썰기</li><li>토핑용 계란 2개</li></ul>
+                    <h3>조리법</h3>
+                    <ol><li>큰 팬에 기름을 두르고 강불에 달구기</li><li>삼겹살을 넣고 바삭하게 익히기</li><li>썬 김치를 넣고 2-3분 볶기</li><li>차가운 밥을 넣고 덩어리를 풀기</li><li>김치 국물과 간장을 넣고 잘 섞기</li><li>참기름을 뿌리고 파 넣기</li><li>계란후라이를 올려서 서빙!</li></ol>
+                    <p>💡 <strong>팁:</strong> 하루 지난 냉장 밥이 가장 좋아요!</p>`,
+                italian: `<h2>🇮🇹 이탈리안 레시피</h2>
+                    <p>2개의 이탈리안 레시피를 찾았습니다:</p>
+                    <h3>파스타 알리오 올리오</h3>
+                    <p>클래식 마늘과 올리브유 파스타 - 간단하고 맛있어요!</p>
+                    <p>⏱️ 20분 | 📊 쉬움 | 🍽️ 4인분</p>
+                    <h3>시저 샐러드</h3>
+                    <p>바삭한 로메인과 크리미한 드레싱, 크루통</p>
+                    <p>⏱️ 25분 | 📊 쉬움 | 🍽️ 4인분</p>
+                    <p><em>전체 레시피를 원하시면 말씀해주세요!</em></p>`,
+                korean: `<h2>🇰🇷 한국 요리 레시피</h2>
+                    <h3>김치볶음밥</h3>
+                    <p>묵은 김치로 만드는 빠르고 맛있는 볶음밥 - 남은 밥 활용에 완벽!</p>
+                    <p>⏱️ 25분 | 📊 쉬움 | 🍽️ 2인분</p>
+                    <p><em>전체 레시피를 원하시면 말씀해주세요!</em></p>`,
+                substitutes: `<h2>🔄 계란 대체재</h2>
+                    <ul><li><strong>아마씨 에그</strong> - 아마씨 가루 1큰술 + 물 3큰술</li><li><strong>치아씨 에그</strong> - 치아씨 1큰술 + 물 3큰술</li><li><strong>으깬 바나나</strong> - 계란 1개당 1/4컵</li><li><strong>사과소스</strong> - 계란 1개당 1/4컵</li><li><strong>아쿠아파바</strong> - 3큰술 (병아리콩 물)</li></ul>`,
+                conversions: `<h2>📏 요리 계량 단위 변환</h2>
+                    <h3>부피</h3><p>1컵 = 240ml = 16큰술<br>1큰술 = 15ml = 3작은술<br>1작은술 = 5ml</p>
+                    <h3>무게</h3><p>1온스 = 28그램<br>1파운드 = 454그램</p>
+                    <h3>온도</h3><p>350°F = 175°C<br>400°F = 200°C<br>425°F = 220°C</p>`,
+                default: `<h2>👨‍🍳 요리 어시스턴트</h2>
+                    <p>도와드릴 수 있는 것:</p>
+                    <ul><li><strong>🍳 레시피</strong> - 요리 문화나 재료로 검색</li><li><strong>🔄 대체재</strong> - 대체품 찾기</li><li><strong>📏 단위 변환</strong> - 컵, 그램, 온도</li><li><strong>⏱️ 타이밍</strong> - 조리 시간</li></ul>
+                    <p><strong>시도해보세요:</strong> "이탈리안 레시피 보여줘" 또는 "계란 대신 뭘 쓸 수 있나요?"</p>`
+            },
+            ja: {
+                welcome: `<h2>👨‍🍳 クッキングアシスタントへようこそ！</h2>
+                    <p>お手伝いできること：</p>
+                    <ul>
+                        <li><strong>レシピ</strong> - 料理の種類、材料、食事制限で検索</li>
+                        <li><strong>料理のヒント</strong> - テクニック、タイミング、温度</li>
+                        <li><strong>代替品</strong> - 材料の代替品を見つける</li>
+                        <li><strong>単位変換</strong> - カップ、グラム、大さじなど</li>
+                        <li><strong>食事計画</strong> - 週間メニューを作成</li>
+                    </ul>
+                    <p style="margin-top: 15px;">今日は何を作りたいですか？</p>`,
+                kimchi: `<h2>🍚 キムチチャーハン</h2>
+                    <p><em>最高の韓国コンフォートフード - 素早く、風味豊かで、残りご飯の活用に最適。</em></p>
+                    <p><strong>料理：</strong>韓国 | <strong>難易度：</strong>簡単<br><strong>準備：</strong>10分 | <strong>調理：</strong>15分 | <strong>人数：</strong>2人分</p>
+                    <h3>材料</h3>
+                    <ul><li>ご飯 3杯（前日の冷ご飯推奨）</li><li>熟成キムチ 1カップ、刻む</li><li>キムチの汁 大さじ2</li><li>豚バラ肉またはベーコン 100g</li><li>サラダ油 大さじ2</li><li>ごま油 大さじ1</li><li>醤油 大さじ1</li><li>ネギ 2本、小口切り</li><li>トッピング用卵 2個</li></ul>
+                    <h3>作り方</h3>
+                    <ol><li>大きなフライパンに油を熱して強火に</li><li>豚肉を入れてカリカリになるまで炒める</li><li>刻んだキムチを入れて2-3分炒める</li><li>冷ご飯を入れて、ほぐす</li><li>キムチの汁と醤油を入れてよく混ぜる</li><li>ごま油をかけて、ネギを加える</li><li>目玉焼きを乗せて完成！</li></ol>
+                    <p>💡 <strong>ヒント：</strong>前日の冷蔵ご飯が一番です！</p>`,
+                italian: `<h2>🇮🇹 イタリアンレシピ</h2>
+                    <p>2つのイタリアンレシピが見つかりました：</p>
+                    <h3>パスタ アーリオ・オーリオ</h3>
+                    <p>クラシックなガーリックとオリーブオイルのパスタ - シンプルで美味しい！</p>
+                    <p>⏱️ 20分 | 📊 簡単 | 🍽️ 4人分</p>
+                    <h3>シーザーサラダ</h3>
+                    <p>シャキシャキロメインとクリーミードレッシング、クルトン</p>
+                    <p>⏱️ 25分 | 📊 簡単 | 🍽️ 4人分</p>
+                    <p><em>詳しいレシピを聞いてください！</em></p>`,
+                korean: `<h2>🇰🇷 韓国料理レシピ</h2>
+                    <h3>キムチチャーハン</h3>
+                    <p>熟成キムチで作る素早くて風味豊かなチャーハン - 残りご飯の活用に最適！</p>
+                    <p>⏱️ 25分 | 📊 簡単 | 🍽️ 2人分</p>
+                    <p><em>詳しいレシピを聞いてください！</em></p>`,
+                substitutes: `<h2>🔄 卵の代替品</h2>
+                    <ul><li><strong>フラックスエッグ</strong> - 亜麻仁粉 大さじ1 + 水 大さじ3</li><li><strong>チアエッグ</strong> - チアシード 大さじ1 + 水 大さじ3</li><li><strong>潰したバナナ</strong> - 卵1個につき1/4カップ</li><li><strong>アップルソース</strong> - 卵1個につき1/4カップ</li><li><strong>アクアファバ</strong> - 大さじ3（ひよこ豆の茹で汁）</li></ul>`,
+                conversions: `<h2>📏 料理の計量単位変換</h2>
+                    <h3>容量</h3><p>1カップ = 240ml = 大さじ16<br>大さじ1 = 15ml = 小さじ3<br>小さじ1 = 5ml</p>
+                    <h3>重量</h3><p>1オンス = 28グラム<br>1ポンド = 454グラム</p>
+                    <h3>温度</h3><p>350°F = 175°C<br>400°F = 200°C<br>425°F = 220°C</p>`,
+                default: `<h2>👨‍🍳 クッキングアシスタント</h2>
+                    <p>お手伝いできること：</p>
+                    <ul><li><strong>🍳 レシピ</strong> - 料理の種類や材料で検索</li><li><strong>🔄 代替品</strong> - 代替品を見つける</li><li><strong>📏 単位変換</strong> - カップ、グラム、温度</li><li><strong>⏱️ タイミング</strong> - 調理時間</li></ul>
+                    <p><strong>試してみて：</strong>「イタリアンレシピを見せて」または「卵の代わりに何が使えますか？」</p>`
+            }
         };
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            const t = i18n[lang];
+
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent === lang.toUpperCase());
+            });
+
+            document.getElementById('title').textContent = t.title;
+            document.getElementById('subtitle').textContent = t.subtitle;
+            document.getElementById('chat-title').textContent = t.chatTitle;
+            document.getElementById('messageInput').placeholder = t.placeholder;
+            document.getElementById('sendBtn').textContent = t.send;
+            document.getElementById('featured-title').textContent = t.featuredTitle;
+            document.getElementById('cuisines-title').textContent = t.cuisinesTitle;
+            document.getElementById('feature1-title').textContent = t.feature1Title;
+            document.getElementById('feature1-desc').textContent = t.feature1Desc;
+            document.getElementById('feature2-title').textContent = t.feature2Title;
+            document.getElementById('feature2-desc').textContent = t.feature2Desc;
+            document.getElementById('feature3-title').textContent = t.feature3Title;
+            document.getElementById('feature3-desc').textContent = t.feature3Desc;
+            document.getElementById('feature4-title').textContent = t.feature4Title;
+            document.getElementById('feature4-desc').textContent = t.feature4Desc;
+            document.getElementById('footer-text').innerHTML = t.footer;
+
+            // Quick buttons
+            document.getElementById('quick-actions').innerHTML = t.quickButtons.map(btn =>
+                `<button class="quick-btn" onclick="sendQuickMessage('${btn.msg}')">${btn.text}</button>`
+            ).join('');
+
+            // Cuisine buttons
+            document.getElementById('cuisines-btns').innerHTML = t.cuisineButtons.map(btn =>
+                `<button class="quick-btn" onclick="sendQuickMessage('${btn.msg}')">${btn.text}</button>`
+            ).join('');
+
+            // Featured recipes
+            document.getElementById('featured-recipes').innerHTML = t.featuredRecipes.map(r => `
+                <div class="recipe-item" onclick="sendQuickMessage('${r.msg}')">
+                    <h4>${r.name}</h4>
+                    <p>${r.desc}</p>
+                    <div class="recipe-meta"><span>${r.cuisine}</span><span>⏱️ ${r.time}</span></div>
+                </div>
+            `).join('');
+
+            chatMessages.innerHTML = '';
+            addMessage(responses[lang].welcome, false);
+        }
 
         function getResponse(message) {
             const lower = message.toLowerCase();
+            const r = responses[currentLang];
 
-            // Check for specific recipes
-            if (lower.includes('kimchi') && (lower.includes('recipe') || lower.includes('make') || lower.includes('how'))) {
-                return recipes.kimchi;
-            }
-            if ((lower.includes('aglio') || lower.includes('olio')) && (lower.includes('recipe') || lower.includes('make') || lower.includes('how') || lower.includes('show'))) {
-                return recipes.aglio;
-            }
-            if (lower.includes('pad thai') && (lower.includes('recipe') || lower.includes('make') || lower.includes('how'))) {
-                return recipes.padthai;
-            }
-            if (lower.includes('curry') && (lower.includes('recipe') || lower.includes('make') || lower.includes('how') || lower.includes('give'))) {
-                return recipes.curry;
-            }
+            if (lower.includes('kimchi') || lower.includes('김치') || lower.includes('キムチ')) return r.kimchi;
+            if (lower.includes('italian') || lower.includes('이탈리안') || lower.includes('イタリアン')) return r.italian;
+            if (lower.includes('korean') || lower.includes('한국') || lower.includes('한식') || lower.includes('韓国')) return r.korean;
+            if (lower.includes('substitute') || lower.includes('replace') || lower.includes('대체') || lower.includes('대신') || lower.includes('代替') || lower.includes('代わり')) return r.substitutes;
+            if (lower.includes('convert') || lower.includes('measurement') || lower.includes('단위') || lower.includes('変換') || lower.includes('計量')) return r.conversions;
 
-            // Check for cuisine searches
-            if (lower.includes('italian')) return responses.italian;
-            if (lower.includes('korean')) return responses.korean;
-            if (lower.includes('japanese')) return responses.japanese;
-            if (lower.includes('mexican')) return responses.mexican;
-            if (lower.includes('french')) return responses.french;
-            if (lower.includes('thai')) return responses.thai;
-
-            // Check for categories
-            if (lower.includes('quick') || lower.includes('easy')) return responses.quick;
-            if (lower.includes('vegetarian') || lower.includes('vegan')) return responses.vegetarian;
-            if (lower.includes('substitute') || lower.includes('replace') || lower.includes('instead')) return responses.substitutes;
-            if (lower.includes('convert') || lower.includes('conversion') || lower.includes('measurement')) return responses.conversions;
-
-            return responses.default;
+            return r.default;
         }
 
         function addMessage(content, isUser = false) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
-
             const contentDiv = document.createElement('div');
             contentDiv.className = 'message-content';
-
-            if (isUser) {
-                contentDiv.textContent = content;
-            } else {
-                contentDiv.innerHTML = content;
-            }
-
+            contentDiv[isUser ? 'textContent' : 'innerHTML'] = content;
             messageDiv.appendChild(contentDiv);
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -738,15 +479,7 @@
             const typingDiv = document.createElement('div');
             typingDiv.className = 'message bot';
             typingDiv.id = 'typing';
-            typingDiv.innerHTML = `
-                <div class="message-content">
-                    <div class="typing-indicator">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </div>
-                </div>
-            `;
+            typingDiv.innerHTML = `<div class="message-content"><div class="typing-indicator"><span></span><span></span><span></span></div></div>`;
             chatMessages.appendChild(typingDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
@@ -759,16 +492,12 @@
         function sendMessage() {
             const message = messageInput.value.trim();
             if (!message) return;
-
             addMessage(message, true);
             messageInput.value = '';
-
             showTyping();
-
             setTimeout(() => {
                 removeTyping();
-                const response = getResponse(message);
-                addMessage(response, false);
+                addMessage(getResponse(message), false);
             }, 800 + Math.random() * 400);
         }
 
@@ -778,10 +507,10 @@
         }
 
         function handleKeyPress(event) {
-            if (event.key === 'Enter') {
-                sendMessage();
-            }
+            if (event.key === 'Enter') sendMessage();
         }
+
+        setLanguage('en');
     </script>
 </body>
 </html>
