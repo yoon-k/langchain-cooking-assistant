@@ -3,514 +3,1334 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Cooking Assistant - Demo</title>
+    <meta name="description" content="AI Cooking Assistant - Get personalized recipes, cooking tips, ingredient substitutions, and meal planning powered by LangChain and LLM.">
+    <meta name="keywords" content="cooking assistant, AI, recipes, LangChain, meal planning, ingredient substitution, cooking tips">
+    <meta name="author" content="yoon-k">
+    <meta property="og:title" content="AI Cooking Assistant | LangChain + LLM">
+    <meta property="og:description" content="Your intelligent kitchen companion with recipes, tips, and meal planning">
+    <meta property="og:type" content="website">
+    <title>AI Cooking Assistant | Demo</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🍳%3C/text%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a25;
+            --bg-card: #16161f;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0b0;
+            --text-muted: #6b6b7b;
+            --accent-primary: #f97316;
+            --accent-secondary: #ea580c;
+            --accent-light: #fed7aa;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --gradient-primary: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            --gradient-glow: linear-gradient(135deg, rgba(249, 115, 22, 0.2) 0%, rgba(234, 88, 12, 0.2) 100%);
+            --shadow-glow: 0 0 40px rgba(249, 115, 22, 0.3);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 50%, #c2410c 100%);
-            min-height: 100vh;
-            padding: 20px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
         }
-        .container { max-width: 1000px; margin: 0 auto; }
-        header { text-align: center; padding: 30px 0; color: white; }
-        .lang-selector { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1rem; }
+
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 30%, rgba(249, 115, 22, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 70%, rgba(234, 88, 12, 0.06) 0%, transparent 50%);
+            animation: bgMove 20s ease-in-out infinite;
+        }
+
+        @keyframes bgMove {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(2%, 2%) rotate(2deg); }
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(10, 10, 15, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 24px;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo-icon {
+            font-size: 2.5rem;
+            filter: drop-shadow(0 0 10px rgba(249, 115, 22, 0.5));
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .lang-selector {
+            display: flex;
+            gap: 4px;
+        }
+
         .lang-btn {
-            padding: 0.4rem 1rem;
-            background: rgba(255,255,255,0.2);
-            border: 2px solid transparent;
-            border-radius: 20px;
-            color: white;
+            padding: 6px 10px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            border-radius: var(--radius-sm);
             cursor: pointer;
+            font-size: 0.75rem;
             font-weight: 500;
-            transition: all 0.2s;
+            transition: all 0.3s;
         }
-        .lang-btn:hover { background: rgba(255,255,255,0.3); }
-        .lang-btn.active { background: white; color: #f97316; }
-        header h1 { font-size: 2.5rem; margin-bottom: 10px; }
-        header p { opacity: 0.9; font-size: 1.1rem; }
-        .main-content { display: grid; grid-template-columns: 1fr 350px; gap: 20px; }
-        @media (max-width: 900px) { .main-content { grid-template-columns: 1fr; } }
-        .chat-container { background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); overflow: hidden; }
-        .chat-header { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); padding: 20px; color: white; }
-        .chat-header h2 { font-size: 1.3rem; display: flex; align-items: center; gap: 10px; }
-        .chat-messages { height: 500px; overflow-y: auto; padding: 20px; background: #fffbf7; }
-        .message { margin-bottom: 15px; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .message.user { text-align: right; }
-        .message-content { display: inline-block; padding: 12px 18px; border-radius: 18px; max-width: 85%; text-align: left; line-height: 1.6; }
-        .message.user .message-content { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; border-bottom-right-radius: 4px; }
-        .message.bot .message-content { background: white; color: #333; border-bottom-left-radius: 4px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .message.bot .message-content h2, .message.bot .message-content h3 { color: #ea580c; margin: 15px 0 10px 0; }
-        .message.bot .message-content h2 { font-size: 1.2rem; }
-        .message.bot .message-content h3 { font-size: 1rem; }
-        .message.bot .message-content ul, .message.bot .message-content ol { margin: 10px 0 10px 20px; }
-        .message.bot .message-content li { margin: 5px 0; }
-        .message.bot .message-content strong { color: #c2410c; }
-        .chat-input-container { padding: 20px; background: white; border-top: 1px solid #fed7aa; }
-        .quick-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
-        .quick-btn { padding: 8px 14px; background: #fff7ed; border: 1px solid #fed7aa; border-radius: 20px; cursor: pointer; font-size: 0.85rem; color: #9a3412; transition: all 0.2s; }
-        .quick-btn:hover { background: #ffedd5; border-color: #f97316; }
-        .input-wrapper { display: flex; gap: 10px; }
-        #messageInput { flex: 1; padding: 15px 20px; border: 2px solid #fed7aa; border-radius: 25px; font-size: 1rem; outline: none; }
-        #messageInput:focus { border-color: #f97316; }
-        #sendBtn { padding: 15px 30px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; border: none; border-radius: 25px; cursor: pointer; font-size: 1rem; font-weight: 600; }
-        #sendBtn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(249, 115, 22, 0.4); }
-        .sidebar { display: flex; flex-direction: column; gap: 20px; }
-        .recipe-card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .recipe-card h3 { color: #ea580c; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
-        .recipe-item { padding: 12px; background: #fff7ed; border-radius: 10px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; }
-        .recipe-item:hover { border-color: #f97316; transform: translateX(5px); }
-        .recipe-item h4 { color: #9a3412; margin-bottom: 5px; font-size: 0.95rem; }
-        .recipe-item p { color: #78716c; font-size: 0.8rem; }
-        .recipe-meta { display: flex; gap: 10px; margin-top: 5px; font-size: 0.75rem; color: #a8a29e; }
-        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 30px; }
-        .feature-card { background: white; border-radius: 15px; padding: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .feature-icon { font-size: 2.5rem; margin-bottom: 10px; }
-        .feature-card h3 { color: #9a3412; margin-bottom: 8px; font-size: 1rem; }
-        .feature-card p { color: #78716c; font-size: 0.85rem; line-height: 1.4; }
-        footer { text-align: center; padding: 30px; color: white; opacity: 0.9; }
-        footer a { color: white; text-decoration: underline; }
-        .typing-indicator { display: flex; gap: 5px; padding: 15px; }
-        .typing-indicator span { width: 8px; height: 8px; background: #f97316; border-radius: 50%; animation: bounce 1.4s infinite ease-in-out; }
-        .typing-indicator span:nth-child(1) { animation-delay: 0s; }
-        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
-        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes bounce { 0%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-10px); } }
+
+        .lang-btn:hover {
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+        }
+
+        .lang-btn.active {
+            background: var(--gradient-primary);
+            border-color: transparent;
+            color: white;
+        }
+
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 120px 24px 80px;
+            text-align: center;
+            z-index: 1;
+        }
+
+        .hero-content { max-width: 900px; }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
+
+        .hero-badge-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 24px;
+        }
+
+        .hero h1 span {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-description {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 48px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 60px rgba(249, 115, 22, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--accent-primary);
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            margin-top: 80px;
+            padding: 32px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-item { text-align: center; }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .features {
+            position: relative;
+            padding: 120px 24px;
+            z-index: 1;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 64px;
+        }
+
+        .section-tag {
+            display: inline-block;
+            padding: 6px 16px;
+            background: var(--gradient-glow);
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--accent-primary);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section-header h2 {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .section-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .features-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-primary);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--gradient-glow);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .cuisines {
+            position: relative;
+            padding: 120px 24px;
+            background: var(--bg-secondary);
+            z-index: 1;
+        }
+
+        .cuisines-grid {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 20px;
+        }
+
+        .cuisine-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .cuisine-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent-primary);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .cuisine-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+
+        .cuisine-name {
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .demo {
+            position: relative;
+            padding: 120px 24px;
+            z-index: 1;
+        }
+
+        .demo-window {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .demo-header {
+            display: flex;
+            align-items: center;
+            padding: 16px 24px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .demo-dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .demo-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .demo-dot.red { background: #ff5f57; }
+        .demo-dot.yellow { background: #ffbd2e; }
+        .demo-dot.green { background: #28ca41; }
+
+        .demo-title {
+            flex: 1;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .demo-content {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            min-height: 500px;
+        }
+
+        .demo-chat {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .demo-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 16px;
+        }
+
+        .demo-message {
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 12px;
+            max-width: 85%;
+        }
+
+        .demo-message.user {
+            background: var(--gradient-primary);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+
+        .demo-message.bot {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-bottom-left-radius: 4px;
+        }
+
+        .demo-message h3 {
+            color: var(--accent-primary);
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+
+        .demo-message ul {
+            margin: 8px 0 8px 20px;
+        }
+
+        .demo-message li {
+            margin: 4px 0;
+            font-size: 0.9rem;
+        }
+
+        .demo-input {
+            display: flex;
+            gap: 8px;
+        }
+
+        .demo-input input {
+            flex: 1;
+            padding: 12px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .demo-input button {
+            padding: 12px 24px;
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: var(--radius-md);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .demo-sidebar {
+            background: var(--bg-card);
+            border-left: 1px solid var(--border-color);
+            padding: 24px;
+        }
+
+        .demo-sidebar h3 {
+            font-size: 1rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .demo-recipe {
+            padding: 12px;
+            background: var(--bg-primary);
+            border-radius: var(--radius-sm);
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .demo-recipe:hover {
+            border-color: var(--accent-primary);
+            transform: translateX(4px);
+        }
+
+        .demo-recipe h4 {
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+
+        .demo-recipe p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .demo-recipe-meta {
+            display: flex;
+            gap: 12px;
+            margin-top: 6px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .languages {
+            position: relative;
+            padding: 120px 24px;
+            z-index: 1;
+        }
+
+        .lang-grid {
+            max-width: 900px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 16px;
+        }
+
+        .lang-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .lang-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-primary);
+        }
+
+        .lang-flag {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+
+        .lang-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .lang-code {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .cta {
+            position: relative;
+            padding: 120px 24px;
+            background: var(--bg-secondary);
+            text-align: center;
+            z-index: 1;
+        }
+
+        .cta-content { max-width: 700px; margin: 0 auto; }
+
+        .cta h2 {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 700;
+            margin-bottom: 24px;
+        }
+
+        .cta p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+        }
+
+        .footer {
+            background: var(--bg-primary);
+            border-top: 1px solid var(--border-color);
+            padding: 48px 24px;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 24px;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .footer-logo span:first-child { font-size: 1.5rem; }
+        .footer-logo span:last-child {
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 32px;
+        }
+
+        .footer-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        .footer-link:hover { color: var(--text-primary); }
+
+        .footer-copy {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 1024px) {
+            .demo-content { grid-template-columns: 1fr; }
+            .demo-sidebar { border-left: none; border-top: 1px solid var(--border-color); }
+        }
+
+        @media (max-width: 768px) {
+            .header-content { flex-direction: column; gap: 16px; }
+            .stats-bar { flex-direction: column; gap: 24px; }
+            .features-grid { grid-template-columns: 1fr; }
+            .cuisines-grid { grid-template-columns: repeat(3, 1fr); }
+            .footer-content { flex-direction: column; text-align: center; }
+        }
+
+        @media (max-width: 480px) {
+            .cuisines-grid { grid-template-columns: repeat(2, 1fr); }
+            .lang-grid { grid-template-columns: repeat(2, 1fr); }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
+    <div class="bg-animation"></div>
+
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span class="logo-icon">🍳</span>
+                <div>
+                    <h1 id="logoTitle">AI Cooking Assistant</h1>
+                    <p class="logo-subtitle" id="logoSubtitle">LangChain + LLM Powered</p>
+                </div>
+            </div>
             <div class="lang-selector">
                 <button class="lang-btn active" onclick="setLanguage('en')">EN</button>
                 <button class="lang-btn" onclick="setLanguage('ko')">KO</button>
                 <button class="lang-btn" onclick="setLanguage('ja')">JA</button>
+                <button class="lang-btn" onclick="setLanguage('zh')">ZH</button>
+                <button class="lang-btn" onclick="setLanguage('es')">ES</button>
+                <button class="lang-btn" onclick="setLanguage('fr')">FR</button>
+                <button class="lang-btn" onclick="setLanguage('de')">DE</button>
             </div>
-            <h1 id="title">AI Cooking Assistant</h1>
-            <p id="subtitle">Your intelligent kitchen companion powered by LangChain</p>
-        </header>
+        </div>
+    </header>
 
-        <div class="main-content">
-            <div class="chat-container">
-                <div class="chat-header">
-                    <h2 id="chat-title"></h2>
-                </div>
-                <div class="chat-messages" id="chatMessages"></div>
-                <div class="chat-input-container">
-                    <div class="quick-actions" id="quick-actions"></div>
-                    <div class="input-wrapper">
-                        <input type="text" id="messageInput" onkeypress="handleKeyPress(event)">
-                        <button id="sendBtn" onclick="sendMessage()"></button>
-                    </div>
-                </div>
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <span class="hero-badge-dot"></span>
+                <span id="heroBadge">AI-Powered Kitchen Intelligence</span>
             </div>
-
-            <div class="sidebar">
-                <div class="recipe-card">
-                    <h3 id="featured-title"></h3>
-                    <div id="featured-recipes"></div>
+            <h1 id="heroTitle">Your Intelligent <span>Cooking Companion</span></h1>
+            <p class="hero-description" id="heroDesc">
+                Get personalized recipes, cooking tips, ingredient substitutions, and meal planning powered by LangChain and LLM.
+            </p>
+            <div class="hero-buttons">
+                <a href="https://github.com/yoon-gu/langchain-cooking-assistant" class="btn btn-primary" target="_blank">
+                    <span>⭐</span>
+                    <span id="btnGithub">View on GitHub</span>
+                </a>
+                <a href="#demo" class="btn btn-secondary">
+                    <span>👁️</span>
+                    <span id="btnDemo">See Demo</span>
+                </a>
+            </div>
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <div class="stat-value">10+</div>
+                    <div class="stat-label" id="statCuisines">Cuisines</div>
                 </div>
-                <div class="recipe-card">
-                    <h3 id="cuisines-title"></h3>
-                    <div id="cuisines-btns" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                <div class="stat-item">
+                    <div class="stat-value">100+</div>
+                    <div class="stat-label" id="statRecipes">Recipes</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">7</div>
+                    <div class="stat-label" id="statLangs">Languages</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">24/7</div>
+                    <div class="stat-label" id="statAvail">Available</div>
                 </div>
             </div>
         </div>
+    </section>
 
-        <div class="features">
+    <section class="features" id="features">
+        <div class="section-header">
+            <span class="section-tag" id="featuresTag">Features</span>
+            <h2 id="featuresTitle">Smart Kitchen Tools</h2>
+            <p id="featuresDesc">Everything you need to cook like a pro</p>
+        </div>
+        <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon">📖</div>
-                <h3 id="feature1-title"></h3>
-                <p id="feature1-desc"></p>
+                <h3 id="feat1Title">Recipe Database</h3>
+                <p id="feat1Desc">Browse recipes from 10+ cuisines with detailed instructions, ingredients, and cooking times.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">⏱️</div>
-                <h3 id="feature2-title"></h3>
-                <p id="feature2-desc"></p>
+                <h3 id="feat2Title">Cooking Times</h3>
+                <p id="feat2Desc">Get perfect timing for meats, eggs, pasta, vegetables, and more with precision guides.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">🔄</div>
-                <h3 id="feature3-title"></h3>
-                <p id="feature3-desc"></p>
+                <h3 id="feat3Title">Substitutions</h3>
+                <p id="feat3Desc">Find alternatives for any ingredient based on dietary restrictions or availability.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">📊</div>
-                <h3 id="feature4-title"></h3>
-                <p id="feature4-desc"></p>
+                <h3 id="feat4Title">Nutrition Info</h3>
+                <p id="feat4Desc">Track calories, macros, and nutritional information for each recipe.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📅</div>
+                <h3 id="feat5Title">Meal Planning</h3>
+                <p id="feat5Desc">Create weekly meal plans with shopping lists and prep schedules.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💬</div>
+                <h3 id="feat6Title">AI Chat</h3>
+                <p id="feat6Desc">Ask questions in natural language and get intelligent cooking advice.</p>
             </div>
         </div>
+    </section>
 
-        <footer>
-            <p id="footer-text"></p>
-        </footer>
-    </div>
+    <section class="cuisines">
+        <div class="section-header">
+            <span class="section-tag" id="cuisinesTag">Cuisines</span>
+            <h2 id="cuisinesTitle">World Cuisines</h2>
+            <p id="cuisinesDesc">Explore recipes from around the globe</p>
+        </div>
+        <div class="cuisines-grid">
+            <div class="cuisine-card">
+                <div class="cuisine-icon">🇮🇹</div>
+                <div class="cuisine-name">Italian</div>
+            </div>
+            <div class="cuisine-card">
+                <div class="cuisine-icon">🇰🇷</div>
+                <div class="cuisine-name">Korean</div>
+            </div>
+            <div class="cuisine-card">
+                <div class="cuisine-icon">🇯🇵</div>
+                <div class="cuisine-name">Japanese</div>
+            </div>
+            <div class="cuisine-card">
+                <div class="cuisine-icon">🇲🇽</div>
+                <div class="cuisine-name">Mexican</div>
+            </div>
+            <div class="cuisine-card">
+                <div class="cuisine-icon">🇫🇷</div>
+                <div class="cuisine-name">French</div>
+            </div>
+            <div class="cuisine-card">
+                <div class="cuisine-icon">🇹🇭</div>
+                <div class="cuisine-name">Thai</div>
+            </div>
+            <div class="cuisine-card">
+                <div class="cuisine-icon">🇮🇳</div>
+                <div class="cuisine-name">Indian</div>
+            </div>
+            <div class="cuisine-card">
+                <div class="cuisine-icon">🇨🇳</div>
+                <div class="cuisine-name">Chinese</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="demo" id="demo">
+        <div class="section-header">
+            <span class="section-tag" id="demoTag">Demo</span>
+            <h2 id="demoTitle">See It In Action</h2>
+            <p id="demoDesc">Experience AI-powered cooking assistance</p>
+        </div>
+        <div class="demo-window">
+            <div class="demo-header">
+                <div class="demo-dots">
+                    <span class="demo-dot red"></span>
+                    <span class="demo-dot yellow"></span>
+                    <span class="demo-dot green"></span>
+                </div>
+                <span class="demo-title">AI Cooking Assistant</span>
+                <div style="width: 52px;"></div>
+            </div>
+            <div class="demo-content">
+                <div class="demo-chat">
+                    <div class="demo-messages">
+                        <div class="demo-message bot">
+                            <h3>👨‍🍳 Welcome!</h3>
+                            <p>I can help you with recipes, cooking tips, and meal planning. What would you like to cook today?</p>
+                        </div>
+                        <div class="demo-message user">
+                            How do I make Kimchi Fried Rice?
+                        </div>
+                        <div class="demo-message bot">
+                            <h3>🍚 Kimchi Fried Rice</h3>
+                            <p><strong>Ingredients:</strong></p>
+                            <ul>
+                                <li>3 cups day-old rice</li>
+                                <li>1 cup aged kimchi, chopped</li>
+                                <li>100g pork belly</li>
+                                <li>2 eggs, sesame oil</li>
+                            </ul>
+                            <p><strong>Time:</strong> 25 min | <strong>Difficulty:</strong> Easy</p>
+                        </div>
+                    </div>
+                    <div class="demo-input">
+                        <input type="text" placeholder="Ask about recipes...">
+                        <button>Send</button>
+                    </div>
+                </div>
+                <div class="demo-sidebar">
+                    <h3>🌟 Featured Recipes</h3>
+                    <div class="demo-recipe">
+                        <h4>Kimchi Fried Rice</h4>
+                        <p>Korean comfort food</p>
+                        <div class="demo-recipe-meta">
+                            <span>🇰🇷 Korean</span>
+                            <span>⏱️ 25 min</span>
+                        </div>
+                    </div>
+                    <div class="demo-recipe">
+                        <h4>Pasta Aglio e Olio</h4>
+                        <p>Classic Italian simplicity</p>
+                        <div class="demo-recipe-meta">
+                            <span>🇮🇹 Italian</span>
+                            <span>⏱️ 20 min</span>
+                        </div>
+                    </div>
+                    <div class="demo-recipe">
+                        <h4>Pad Thai</h4>
+                        <p>Famous Thai noodles</p>
+                        <div class="demo-recipe-meta">
+                            <span>🇹🇭 Thai</span>
+                            <span>⏱️ 35 min</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="languages" id="languages">
+        <div class="section-header">
+            <span class="section-tag" id="langsTag">Global</span>
+            <h2 id="langsTitle">7 Languages Supported</h2>
+            <p id="langsDesc">Cook in your preferred language</p>
+        </div>
+        <div class="lang-grid">
+            <div class="lang-card">
+                <div class="lang-flag">🇺🇸</div>
+                <div class="lang-name">English</div>
+                <div class="lang-code">EN</div>
+            </div>
+            <div class="lang-card">
+                <div class="lang-flag">🇰🇷</div>
+                <div class="lang-name">한국어</div>
+                <div class="lang-code">KO</div>
+            </div>
+            <div class="lang-card">
+                <div class="lang-flag">🇯🇵</div>
+                <div class="lang-name">日本語</div>
+                <div class="lang-code">JA</div>
+            </div>
+            <div class="lang-card">
+                <div class="lang-flag">🇨🇳</div>
+                <div class="lang-name">中文</div>
+                <div class="lang-code">ZH</div>
+            </div>
+            <div class="lang-card">
+                <div class="lang-flag">🇪🇸</div>
+                <div class="lang-name">Español</div>
+                <div class="lang-code">ES</div>
+            </div>
+            <div class="lang-card">
+                <div class="lang-flag">🇫🇷</div>
+                <div class="lang-name">Français</div>
+                <div class="lang-code">FR</div>
+            </div>
+            <div class="lang-card">
+                <div class="lang-flag">🇩🇪</div>
+                <div class="lang-name">Deutsch</div>
+                <div class="lang-code">DE</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <div class="cta-content">
+            <h2 id="ctaTitle">Ready to Cook Smarter?</h2>
+            <p id="ctaDesc">Deploy your own AI Cooking Assistant with LangChain and start creating delicious meals today.</p>
+            <div class="hero-buttons">
+                <a href="https://github.com/yoon-gu/langchain-cooking-assistant" class="btn btn-primary" target="_blank">
+                    <span>🚀</span>
+                    <span id="ctaBtnStart">Get Started</span>
+                </a>
+                <a href="https://github.com/yoon-gu/langchain-cooking-assistant/blob/main/README.md" class="btn btn-secondary" target="_blank">
+                    <span>📖</span>
+                    <span id="ctaBtnDocs">Documentation</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <span>🍳</span>
+                <span>AI Cooking Assistant</span>
+            </div>
+            <div class="footer-links">
+                <a href="https://github.com/yoon-gu/langchain-cooking-assistant" class="footer-link" target="_blank">GitHub</a>
+                <a href="https://github.com/yoon-gu/langchain-cooking-assistant/issues" class="footer-link" target="_blank">Issues</a>
+                <a href="https://github.com/yoon-gu" class="footer-link" target="_blank">Author</a>
+            </div>
+            <p class="footer-copy">© 2024 AI Cooking Assistant. MIT License.</p>
+        </div>
+    </footer>
 
     <script>
-        let currentLang = 'en';
-        const chatMessages = document.getElementById('chatMessages');
-        const messageInput = document.getElementById('messageInput');
-
         const i18n = {
             en: {
-                title: "AI Cooking Assistant",
-                subtitle: "Your intelligent kitchen companion powered by LangChain",
-                chatTitle: "🍳 Let's Cook Something Delicious!",
-                placeholder: "Ask about recipes, techniques, substitutions...",
-                send: "Cook!",
-                featuredTitle: "🌟 Featured Recipes",
-                cuisinesTitle: "🍽️ Cuisines",
-                feature1Title: "Recipe Database",
-                feature1Desc: "Browse recipes from 10+ cuisines with detailed instructions",
-                feature2Title: "Cooking Times",
-                feature2Desc: "Get perfect timing for meats, eggs, pasta, and more",
-                feature3Title: "Substitutions",
-                feature3Desc: "Find alternatives for any ingredient",
-                feature4Title: "Nutrition Info",
-                feature4Desc: "Track calories and macros for each recipe",
-                footer: "Built with LangChain & Flask | <a href=\"https://github.com/yoon-k/langchain-cooking-assistant\">View on GitHub</a>",
-                quickButtons: [
-                    { text: "🇮🇹 Italian", msg: "Show me Italian recipes" },
-                    { text: "🇰🇷 Korean", msg: "Show me Korean recipes" },
-                    { text: "⚡ Quick & Easy", msg: "Quick easy recipes" },
-                    { text: "🥬 Vegetarian", msg: "Vegetarian recipes" },
-                    { text: "🔄 Substitutes", msg: "What can I substitute for eggs?" },
-                    { text: "📏 Conversions", msg: "Measurement conversions" }
-                ],
-                cuisineButtons: [
-                    { text: "🇯🇵 Japanese", msg: "Japanese recipes" },
-                    { text: "🇲🇽 Mexican", msg: "Mexican recipes" },
-                    { text: "🇫🇷 French", msg: "French recipes" },
-                    { text: "🇹🇭 Thai", msg: "Thai recipes" }
-                ],
-                featuredRecipes: [
-                    { name: "Kimchi Fried Rice", desc: "Korean comfort food at its best", cuisine: "🇰🇷 Korean", time: "25 min", msg: "How do I make Kimchi Fried Rice?" },
-                    { name: "Pasta Aglio e Olio", desc: "Classic Italian simplicity", cuisine: "🇮🇹 Italian", time: "20 min", msg: "Show me the Pasta Aglio e Olio recipe" },
-                    { name: "Pad Thai", desc: "Thailand's famous noodle dish", cuisine: "🇹🇭 Thai", time: "35 min", msg: "How do I make Pad Thai?" },
-                    { name: "Vegetable Curry", desc: "Rich and aromatic", cuisine: "🇮🇳 Indian", time: "50 min", msg: "Give me the Vegetable Curry recipe" }
-                ]
+                logoTitle: 'AI Cooking Assistant',
+                logoSubtitle: 'LangChain + LLM Powered',
+                heroBadge: 'AI-Powered Kitchen Intelligence',
+                heroTitle: 'Your Intelligent <span>Cooking Companion</span>',
+                heroDesc: 'Get personalized recipes, cooking tips, ingredient substitutions, and meal planning powered by LangChain and LLM.',
+                btnGithub: 'View on GitHub',
+                btnDemo: 'See Demo',
+                statCuisines: 'Cuisines',
+                statRecipes: 'Recipes',
+                statLangs: 'Languages',
+                statAvail: 'Available',
+                featuresTag: 'Features',
+                featuresTitle: 'Smart Kitchen Tools',
+                featuresDesc: 'Everything you need to cook like a pro',
+                feat1Title: 'Recipe Database',
+                feat1Desc: 'Browse recipes from 10+ cuisines with detailed instructions, ingredients, and cooking times.',
+                feat2Title: 'Cooking Times',
+                feat2Desc: 'Get perfect timing for meats, eggs, pasta, vegetables, and more with precision guides.',
+                feat3Title: 'Substitutions',
+                feat3Desc: 'Find alternatives for any ingredient based on dietary restrictions or availability.',
+                feat4Title: 'Nutrition Info',
+                feat4Desc: 'Track calories, macros, and nutritional information for each recipe.',
+                feat5Title: 'Meal Planning',
+                feat5Desc: 'Create weekly meal plans with shopping lists and prep schedules.',
+                feat6Title: 'AI Chat',
+                feat6Desc: 'Ask questions in natural language and get intelligent cooking advice.',
+                cuisinesTag: 'Cuisines',
+                cuisinesTitle: 'World Cuisines',
+                cuisinesDesc: 'Explore recipes from around the globe',
+                demoTag: 'Demo',
+                demoTitle: 'See It In Action',
+                demoDesc: 'Experience AI-powered cooking assistance',
+                langsTag: 'Global',
+                langsTitle: '7 Languages Supported',
+                langsDesc: 'Cook in your preferred language',
+                ctaTitle: 'Ready to Cook Smarter?',
+                ctaDesc: 'Deploy your own AI Cooking Assistant with LangChain and start creating delicious meals today.',
+                ctaBtnStart: 'Get Started',
+                ctaBtnDocs: 'Documentation'
             },
             ko: {
-                title: "AI 요리 어시스턴트",
-                subtitle: "LangChain으로 구동되는 지능형 주방 도우미",
-                chatTitle: "🍳 맛있는 요리를 만들어 봅시다!",
-                placeholder: "레시피, 기술, 대체재에 대해 질문하세요...",
-                send: "요리!",
-                featuredTitle: "🌟 추천 레시피",
-                cuisinesTitle: "🍽️ 요리 종류",
-                feature1Title: "레시피 데이터베이스",
-                feature1Desc: "10개 이상의 요리 문화에서 상세한 조리법을 찾아보세요",
-                feature2Title: "조리 시간",
-                feature2Desc: "고기, 계란, 파스타 등의 완벽한 타이밍을 얻으세요",
-                feature3Title: "대체재",
-                feature3Desc: "모든 재료의 대체품을 찾으세요",
-                feature4Title: "영양 정보",
-                feature4Desc: "각 레시피의 칼로리와 영양소를 추적하세요",
-                footer: "LangChain & Flask로 제작 | <a href=\"https://github.com/yoon-k/langchain-cooking-assistant\">GitHub에서 보기</a>",
-                quickButtons: [
-                    { text: "🇮🇹 이탈리안", msg: "이탈리안 레시피 보여줘" },
-                    { text: "🇰🇷 한식", msg: "한국 레시피 보여줘" },
-                    { text: "⚡ 빠르고 쉬운", msg: "빠르고 쉬운 레시피" },
-                    { text: "🥬 채식", msg: "채식 레시피" },
-                    { text: "🔄 대체재", msg: "계란 대신 뭘 쓸 수 있나요?" },
-                    { text: "📏 단위 변환", msg: "계량 단위 변환" }
-                ],
-                cuisineButtons: [
-                    { text: "🇯🇵 일식", msg: "일본 레시피" },
-                    { text: "🇲🇽 멕시칸", msg: "멕시코 레시피" },
-                    { text: "🇫🇷 프랑스", msg: "프랑스 레시피" },
-                    { text: "🇹🇭 태국", msg: "태국 레시피" }
-                ],
-                featuredRecipes: [
-                    { name: "김치볶음밥", desc: "최고의 한국식 컴포트 푸드", cuisine: "🇰🇷 한식", time: "25분", msg: "김치볶음밥 어떻게 만들어요?" },
-                    { name: "파스타 알리오 올리오", desc: "클래식 이탈리안의 단순함", cuisine: "🇮🇹 이탈리안", time: "20분", msg: "알리오 올리오 레시피 보여줘" },
-                    { name: "팟타이", desc: "태국의 유명한 볶음 면", cuisine: "🇹🇭 태국", time: "35분", msg: "팟타이 어떻게 만들어요?" },
-                    { name: "채소 카레", desc: "풍부하고 향기로운", cuisine: "🇮🇳 인도", time: "50분", msg: "채소 카레 레시피 알려줘" }
-                ]
+                logoTitle: 'AI 요리 어시스턴트',
+                logoSubtitle: 'LangChain + LLM 기반',
+                heroBadge: 'AI 기반 주방 인텔리전스',
+                heroTitle: '당신의 지능형 <span>요리 도우미</span>',
+                heroDesc: 'LangChain과 LLM으로 구동되는 맞춤 레시피, 요리 팁, 재료 대체, 식단 계획을 받으세요.',
+                btnGithub: 'GitHub에서 보기',
+                btnDemo: '데모 보기',
+                statCuisines: '요리 종류',
+                statRecipes: '레시피',
+                statLangs: '지원 언어',
+                statAvail: '이용 가능',
+                featuresTag: '기능',
+                featuresTitle: '스마트 주방 도구',
+                featuresDesc: '프로처럼 요리하기 위한 모든 것',
+                feat1Title: '레시피 데이터베이스',
+                feat1Desc: '10개 이상의 요리 문화에서 상세한 조리법, 재료, 조리 시간이 포함된 레시피를 찾아보세요.',
+                feat2Title: '조리 시간',
+                feat2Desc: '고기, 계란, 파스타, 야채 등의 완벽한 타이밍을 정밀 가이드로 얻으세요.',
+                feat3Title: '대체재',
+                feat3Desc: '식이 제한이나 가용성에 따라 모든 재료의 대체품을 찾으세요.',
+                feat4Title: '영양 정보',
+                feat4Desc: '각 레시피의 칼로리, 매크로, 영양 정보를 추적하세요.',
+                feat5Title: '식단 계획',
+                feat5Desc: '장보기 목록과 준비 일정이 포함된 주간 식단 계획을 만드세요.',
+                feat6Title: 'AI 채팅',
+                feat6Desc: '자연어로 질문하고 지능적인 요리 조언을 받으세요.',
+                cuisinesTag: '요리 종류',
+                cuisinesTitle: '세계 요리',
+                cuisinesDesc: '전 세계의 레시피를 탐험하세요',
+                demoTag: '데모',
+                demoTitle: '실제로 확인하세요',
+                demoDesc: 'AI 기반 요리 도우미를 경험하세요',
+                langsTag: '글로벌',
+                langsTitle: '7개 언어 지원',
+                langsDesc: '선호하는 언어로 요리하세요',
+                ctaTitle: '더 스마트하게 요리할 준비가 되셨나요?',
+                ctaDesc: 'LangChain으로 자신만의 AI 요리 어시스턴트를 배포하고 오늘부터 맛있는 요리를 만드세요.',
+                ctaBtnStart: '시작하기',
+                ctaBtnDocs: '문서'
             },
             ja: {
-                title: "AI クッキングアシスタント",
-                subtitle: "LangChainで動作するインテリジェントなキッチンコンパニオン",
-                chatTitle: "🍳 おいしい料理を作りましょう！",
-                placeholder: "レシピ、テクニック、代替品について質問してください...",
-                send: "料理！",
-                featuredTitle: "🌟 おすすめレシピ",
-                cuisinesTitle: "🍽️ 料理の種類",
-                feature1Title: "レシピデータベース",
-                feature1Desc: "10以上の料理文化から詳細な調理法を閲覧",
-                feature2Title: "調理時間",
-                feature2Desc: "肉、卵、パスタなどの完璧なタイミングを取得",
-                feature3Title: "代替品",
-                feature3Desc: "あらゆる材料の代替品を見つける",
-                feature4Title: "栄養情報",
-                feature4Desc: "各レシピのカロリーと栄養素を追跡",
-                footer: "LangChain & Flaskで構築 | <a href=\"https://github.com/yoon-k/langchain-cooking-assistant\">GitHubで見る</a>",
-                quickButtons: [
-                    { text: "🇮🇹 イタリアン", msg: "イタリアンレシピを見せて" },
-                    { text: "🇰🇷 韓国料理", msg: "韓国料理レシピを見せて" },
-                    { text: "⚡ 簡単", msg: "簡単なレシピ" },
-                    { text: "🥬 ベジタリアン", msg: "ベジタリアンレシピ" },
-                    { text: "🔄 代替品", msg: "卵の代わりに何が使えますか？" },
-                    { text: "📏 単位変換", msg: "計量単位の変換" }
-                ],
-                cuisineButtons: [
-                    { text: "🇯🇵 和食", msg: "日本料理レシピ" },
-                    { text: "🇲🇽 メキシカン", msg: "メキシコ料理レシピ" },
-                    { text: "🇫🇷 フレンチ", msg: "フランス料理レシピ" },
-                    { text: "🇹🇭 タイ料理", msg: "タイ料理レシピ" }
-                ],
-                featuredRecipes: [
-                    { name: "キムチチャーハン", desc: "最高の韓国コンフォートフード", cuisine: "🇰🇷 韓国", time: "25分", msg: "キムチチャーハンの作り方は？" },
-                    { name: "パスタ アーリオ・オーリオ", desc: "クラシックイタリアンのシンプルさ", cuisine: "🇮🇹 イタリアン", time: "20分", msg: "アーリオオーリオのレシピを見せて" },
-                    { name: "パッタイ", desc: "タイの有名な炒め麺", cuisine: "🇹🇭 タイ", time: "35分", msg: "パッタイの作り方は？" },
-                    { name: "野菜カレー", desc: "リッチで香り高い", cuisine: "🇮🇳 インド", time: "50分", msg: "野菜カレーのレシピを教えて" }
-                ]
+                logoTitle: 'AIクッキングアシスタント',
+                logoSubtitle: 'LangChain + LLM搭載',
+                heroBadge: 'AI駆動キッチンインテリジェンス',
+                heroTitle: 'あなたのインテリジェントな<span>料理コンパニオン</span>',
+                heroDesc: 'LangChainとLLMで駆動されるパーソナライズドレシピ、料理のヒント、材料の代替品、食事計画を取得。',
+                btnGithub: 'GitHubで見る',
+                btnDemo: 'デモを見る',
+                statCuisines: '料理の種類',
+                statRecipes: 'レシピ',
+                statLangs: '対応言語',
+                statAvail: '利用可能',
+                featuresTag: '機能',
+                featuresTitle: 'スマートキッチンツール',
+                featuresDesc: 'プロのように料理するために必要なすべて',
+                feat1Title: 'レシピデータベース',
+                feat1Desc: '10以上の料理文化から詳細な調理法、材料、調理時間を含むレシピを閲覧。',
+                feat2Title: '調理時間',
+                feat2Desc: '肉、卵、パスタ、野菜などの完璧なタイミングを精密ガイドで取得。',
+                feat3Title: '代替品',
+                feat3Desc: '食事制限や入手可能性に基づいてあらゆる材料の代替品を見つける。',
+                feat4Title: '栄養情報',
+                feat4Desc: '各レシピのカロリー、マクロ、栄養情報を追跡。',
+                feat5Title: '食事計画',
+                feat5Desc: '買い物リストと準備スケジュール付きの週間食事計画を作成。',
+                feat6Title: 'AIチャット',
+                feat6Desc: '自然言語で質問し、インテリジェントな料理アドバイスを取得。',
+                cuisinesTag: '料理の種類',
+                cuisinesTitle: '世界の料理',
+                cuisinesDesc: '世界中のレシピを探索',
+                demoTag: 'デモ',
+                demoTitle: '実際に見てみましょう',
+                demoDesc: 'AI駆動の料理アシスタントを体験',
+                langsTag: 'グローバル',
+                langsTitle: '7言語対応',
+                langsDesc: 'お好みの言語で料理',
+                ctaTitle: 'よりスマートに料理する準備はできましたか？',
+                ctaDesc: 'LangChainで独自のAIクッキングアシスタントをデプロイし、今日から美味しい料理を作りましょう。',
+                ctaBtnStart: '始める',
+                ctaBtnDocs: 'ドキュメント'
+            },
+            zh: {
+                logoTitle: 'AI烹饪助手',
+                logoSubtitle: 'LangChain + LLM驱动',
+                heroBadge: 'AI驱动厨房智能',
+                heroTitle: '您的智能<span>烹饪伴侣</span>',
+                heroDesc: '获取由LangChain和LLM驱动的个性化食谱、烹饪技巧、食材替代和膳食计划。',
+                btnGithub: '在GitHub上查看',
+                btnDemo: '查看演示',
+                statCuisines: '菜系',
+                statRecipes: '食谱',
+                statLangs: '语言',
+                statAvail: '可用',
+                featuresTag: '功能',
+                featuresTitle: '智能厨房工具',
+                featuresDesc: '像专业厨师一样烹饪所需的一切',
+                feat1Title: '食谱数据库',
+                feat1Desc: '浏览10多种菜系的食谱，包含详细说明、配料和烹饪时间。',
+                feat2Title: '烹饪时间',
+                feat2Desc: '通过精确指南获取肉类、鸡蛋、意面、蔬菜等的完美时间。',
+                feat3Title: '替代品',
+                feat3Desc: '根据饮食限制或可用性找到任何食材的替代品。',
+                feat4Title: '营养信息',
+                feat4Desc: '跟踪每个食谱的卡路里、宏量营养素和营养信息。',
+                feat5Title: '膳食计划',
+                feat5Desc: '创建带有购物清单和准备时间表的每周膳食计划。',
+                feat6Title: 'AI聊天',
+                feat6Desc: '用自然语言提问，获取智能烹饪建议。',
+                cuisinesTag: '菜系',
+                cuisinesTitle: '世界美食',
+                cuisinesDesc: '探索来自世界各地的食谱',
+                demoTag: '演示',
+                demoTitle: '实际体验',
+                demoDesc: '体验AI驱动的烹饪助手',
+                langsTag: '全球化',
+                langsTitle: '支持7种语言',
+                langsDesc: '用您喜欢的语言烹饪',
+                ctaTitle: '准备好更聪明地烹饪了吗？',
+                ctaDesc: '使用LangChain部署您自己的AI烹饪助手，今天就开始制作美味佳肴。',
+                ctaBtnStart: '开始使用',
+                ctaBtnDocs: '文档'
+            },
+            es: {
+                logoTitle: 'Asistente de Cocina IA',
+                logoSubtitle: 'Potenciado por LangChain + LLM',
+                heroBadge: 'Inteligencia de Cocina con IA',
+                heroTitle: 'Tu Compañero de <span>Cocina Inteligente</span>',
+                heroDesc: 'Obtén recetas personalizadas, consejos de cocina, sustituciones de ingredientes y planificación de comidas con LangChain y LLM.',
+                btnGithub: 'Ver en GitHub',
+                btnDemo: 'Ver Demo',
+                statCuisines: 'Cocinas',
+                statRecipes: 'Recetas',
+                statLangs: 'Idiomas',
+                statAvail: 'Disponible',
+                featuresTag: 'Características',
+                featuresTitle: 'Herramientas de Cocina Inteligentes',
+                featuresDesc: 'Todo lo que necesitas para cocinar como un profesional',
+                feat1Title: 'Base de Recetas',
+                feat1Desc: 'Explora recetas de más de 10 cocinas con instrucciones detalladas, ingredientes y tiempos.',
+                feat2Title: 'Tiempos de Cocción',
+                feat2Desc: 'Obtén tiempos perfectos para carnes, huevos, pasta, verduras y más con guías precisas.',
+                feat3Title: 'Sustituciones',
+                feat3Desc: 'Encuentra alternativas para cualquier ingrediente según restricciones dietéticas o disponibilidad.',
+                feat4Title: 'Info Nutricional',
+                feat4Desc: 'Rastrea calorías, macros e información nutricional de cada receta.',
+                feat5Title: 'Planificación de Comidas',
+                feat5Desc: 'Crea planes de comidas semanales con listas de compras y horarios de preparación.',
+                feat6Title: 'Chat IA',
+                feat6Desc: 'Haz preguntas en lenguaje natural y obtén consejos de cocina inteligentes.',
+                cuisinesTag: 'Cocinas',
+                cuisinesTitle: 'Cocinas del Mundo',
+                cuisinesDesc: 'Explora recetas de todo el mundo',
+                demoTag: 'Demo',
+                demoTitle: 'Míralo en Acción',
+                demoDesc: 'Experimenta la asistencia de cocina con IA',
+                langsTag: 'Global',
+                langsTitle: '7 Idiomas Soportados',
+                langsDesc: 'Cocina en tu idioma preferido',
+                ctaTitle: '¿Listo para Cocinar Más Inteligente?',
+                ctaDesc: 'Despliega tu propio Asistente de Cocina IA con LangChain y comienza a crear comidas deliciosas hoy.',
+                ctaBtnStart: 'Comenzar',
+                ctaBtnDocs: 'Documentación'
+            },
+            fr: {
+                logoTitle: 'Assistant Cuisine IA',
+                logoSubtitle: 'Propulsé par LangChain + LLM',
+                heroBadge: 'Intelligence Culinaire par IA',
+                heroTitle: 'Votre Compagnon de <span>Cuisine Intelligent</span>',
+                heroDesc: 'Obtenez des recettes personnalisées, conseils de cuisine, substitutions d\'ingrédients et planification de repas avec LangChain et LLM.',
+                btnGithub: 'Voir sur GitHub',
+                btnDemo: 'Voir la Démo',
+                statCuisines: 'Cuisines',
+                statRecipes: 'Recettes',
+                statLangs: 'Langues',
+                statAvail: 'Disponible',
+                featuresTag: 'Fonctionnalités',
+                featuresTitle: 'Outils de Cuisine Intelligents',
+                featuresDesc: 'Tout ce dont vous avez besoin pour cuisiner comme un pro',
+                feat1Title: 'Base de Recettes',
+                feat1Desc: 'Parcourez des recettes de plus de 10 cuisines avec instructions détaillées, ingrédients et temps de cuisson.',
+                feat2Title: 'Temps de Cuisson',
+                feat2Desc: 'Obtenez des temps parfaits pour viandes, œufs, pâtes, légumes et plus avec des guides précis.',
+                feat3Title: 'Substitutions',
+                feat3Desc: 'Trouvez des alternatives pour tout ingrédient selon les restrictions alimentaires ou la disponibilité.',
+                feat4Title: 'Info Nutritionnelle',
+                feat4Desc: 'Suivez les calories, macros et informations nutritionnelles de chaque recette.',
+                feat5Title: 'Planification des Repas',
+                feat5Desc: 'Créez des plans de repas hebdomadaires avec listes de courses et horaires de préparation.',
+                feat6Title: 'Chat IA',
+                feat6Desc: 'Posez des questions en langage naturel et obtenez des conseils de cuisine intelligents.',
+                cuisinesTag: 'Cuisines',
+                cuisinesTitle: 'Cuisines du Monde',
+                cuisinesDesc: 'Explorez des recettes du monde entier',
+                demoTag: 'Démo',
+                demoTitle: 'Voyez-le en Action',
+                demoDesc: 'Découvrez l\'assistance culinaire par IA',
+                langsTag: 'Global',
+                langsTitle: '7 Langues Supportées',
+                langsDesc: 'Cuisinez dans votre langue préférée',
+                ctaTitle: 'Prêt à Cuisiner Plus Intelligemment?',
+                ctaDesc: 'Déployez votre propre Assistant Cuisine IA avec LangChain et commencez à créer des repas délicieux aujourd\'hui.',
+                ctaBtnStart: 'Commencer',
+                ctaBtnDocs: 'Documentation'
+            },
+            de: {
+                logoTitle: 'KI-Kochassistent',
+                logoSubtitle: 'Powered by LangChain + LLM',
+                heroBadge: 'KI-gestützte Küchenintelligenz',
+                heroTitle: 'Ihr intelligenter <span>Kochbegleiter</span>',
+                heroDesc: 'Erhalten Sie personalisierte Rezepte, Kochtipps, Zutatenaustausch und Mahlzeitenplanung mit LangChain und LLM.',
+                btnGithub: 'Auf GitHub ansehen',
+                btnDemo: 'Demo ansehen',
+                statCuisines: 'Küchen',
+                statRecipes: 'Rezepte',
+                statLangs: 'Sprachen',
+                statAvail: 'Verfügbar',
+                featuresTag: 'Funktionen',
+                featuresTitle: 'Intelligente Küchenwerkzeuge',
+                featuresDesc: 'Alles was Sie brauchen, um wie ein Profi zu kochen',
+                feat1Title: 'Rezeptdatenbank',
+                feat1Desc: 'Durchsuchen Sie Rezepte aus über 10 Küchen mit detaillierten Anleitungen, Zutaten und Garzeiten.',
+                feat2Title: 'Garzeiten',
+                feat2Desc: 'Erhalten Sie perfekte Zeiten für Fleisch, Eier, Pasta, Gemüse und mehr mit präzisen Anleitungen.',
+                feat3Title: 'Ersatz',
+                feat3Desc: 'Finden Sie Alternativen für jede Zutat basierend auf Ernährungseinschränkungen oder Verfügbarkeit.',
+                feat4Title: 'Nährwertinfo',
+                feat4Desc: 'Verfolgen Sie Kalorien, Makros und Nährwertinformationen für jedes Rezept.',
+                feat5Title: 'Mahlzeitenplanung',
+                feat5Desc: 'Erstellen Sie wöchentliche Mahlzeitenpläne mit Einkaufslisten und Vorbereitungsplänen.',
+                feat6Title: 'KI-Chat',
+                feat6Desc: 'Stellen Sie Fragen in natürlicher Sprache und erhalten Sie intelligente Kochtipps.',
+                cuisinesTag: 'Küchen',
+                cuisinesTitle: 'Weltküchen',
+                cuisinesDesc: 'Entdecken Sie Rezepte aus aller Welt',
+                demoTag: 'Demo',
+                demoTitle: 'Sehen Sie es in Aktion',
+                demoDesc: 'Erleben Sie KI-gestützte Kochassistenz',
+                langsTag: 'Global',
+                langsTitle: '7 Sprachen unterstützt',
+                langsDesc: 'Kochen Sie in Ihrer bevorzugten Sprache',
+                ctaTitle: 'Bereit, intelligenter zu kochen?',
+                ctaDesc: 'Stellen Sie Ihren eigenen KI-Kochassistenten mit LangChain bereit und beginnen Sie heute, köstliche Mahlzeiten zu kreieren.',
+                ctaBtnStart: 'Loslegen',
+                ctaBtnDocs: 'Dokumentation'
             }
         };
 
-        const responses = {
-            en: {
-                welcome: `<h2>👨‍🍳 Welcome to Your Cooking Assistant!</h2>
-                    <p>I can help you with:</p>
-                    <ul>
-                        <li><strong>Recipes</strong> - Search by cuisine, ingredient, or dietary needs</li>
-                        <li><strong>Cooking Tips</strong> - Techniques, timing, and temperatures</li>
-                        <li><strong>Substitutions</strong> - Find ingredient alternatives</li>
-                        <li><strong>Conversions</strong> - Cups, grams, tablespoons, and more</li>
-                        <li><strong>Meal Planning</strong> - Create weekly menus</li>
-                    </ul>
-                    <p style="margin-top: 15px;">What would you like to cook today?</p>`,
-                kimchi: `<h2>🍚 Kimchi Fried Rice</h2>
-                    <p><em>Korean comfort food at its best - quick, flavorful, and perfect for using leftover rice.</em></p>
-                    <p><strong>Cuisine:</strong> Korean | <strong>Difficulty:</strong> Easy<br><strong>Prep:</strong> 10 min | <strong>Cook:</strong> 15 min | <strong>Servings:</strong> 2</p>
-                    <h3>Ingredients</h3>
-                    <ul><li>3 cups cooked rice (day-old preferred)</li><li>1 cup aged kimchi, chopped</li><li>2 tbsp kimchi juice</li><li>100g pork belly or bacon</li><li>2 tbsp vegetable oil</li><li>1 tbsp sesame oil</li><li>1 tbsp soy sauce</li><li>2 green onions, chopped</li><li>2 eggs for topping</li></ul>
-                    <h3>Instructions</h3>
-                    <ol><li>Heat oil in a large pan over high heat</li><li>Add diced pork and cook until crispy</li><li>Add chopped kimchi and stir-fry for 2-3 minutes</li><li>Add cold rice, breaking up any clumps</li><li>Pour in kimchi juice and soy sauce, mix well</li><li>Drizzle sesame oil, add green onions</li><li>Top with a fried egg and serve!</li></ol>
-                    <p>💡 <strong>Tip:</strong> Day-old refrigerated rice works best!</p>`,
-                italian: `<h2>🇮🇹 Italian Recipes</h2>
-                    <p>Found 2 Italian recipes:</p>
-                    <h3>Pasta Aglio e Olio</h3>
-                    <p>Classic garlic and olive oil pasta - simple and delicious!</p>
-                    <p>⏱️ 20 min | 📊 Easy | 🍽️ 4 servings</p>
-                    <h3>Caesar Salad</h3>
-                    <p>Crisp romaine with creamy dressing and croutons</p>
-                    <p>⏱️ 25 min | 📊 Easy | 🍽️ 4 servings</p>
-                    <p><em>Ask me for the full recipe of any dish!</em></p>`,
-                korean: `<h2>🇰🇷 Korean Recipes</h2>
-                    <h3>Kimchi Fried Rice (Kimchi Bokkeumbap)</h3>
-                    <p>Quick and flavorful fried rice with aged kimchi - perfect for using leftover rice!</p>
-                    <p>⏱️ 25 min | 📊 Easy | 🍽️ 2 servings</p>
-                    <p><em>Ask me for the full recipe!</em></p>`,
-                substitutes: `<h2>🔄 Egg Substitutes</h2>
-                    <ul><li><strong>Flax Egg</strong> - 1 tbsp ground flax + 3 tbsp water</li><li><strong>Chia Egg</strong> - 1 tbsp chia seeds + 3 tbsp water</li><li><strong>Mashed Banana</strong> - 1/4 cup per egg</li><li><strong>Applesauce</strong> - 1/4 cup per egg</li><li><strong>Aquafaba</strong> - 3 tbsp (chickpea water)</li></ul>`,
-                conversions: `<h2>📏 Cooking Measurement Conversions</h2>
-                    <h3>Volume</h3><p>1 cup = 240 ml = 16 tbsp<br>1 tablespoon = 15 ml = 3 tsp<br>1 teaspoon = 5 ml</p>
-                    <h3>Weight</h3><p>1 ounce = 28 grams<br>1 pound = 454 grams</p>
-                    <h3>Temperature</h3><p>350°F = 175°C<br>400°F = 200°C<br>425°F = 220°C</p>`,
-                default: `<h2>👨‍🍳 Cooking Assistant</h2>
-                    <p>I can help you with:</p>
-                    <ul><li><strong>🍳 Recipes</strong> - Search by cuisine or ingredient</li><li><strong>🔄 Substitutions</strong> - Find alternatives</li><li><strong>📏 Conversions</strong> - Cups, grams, temperatures</li><li><strong>⏱️ Timing</strong> - Cooking times</li></ul>
-                    <p><strong>Try:</strong> "Show me Italian recipes" or "What can I substitute for eggs?"</p>`
-            },
-            ko: {
-                welcome: `<h2>👨‍🍳 요리 어시스턴트에 오신 것을 환영합니다!</h2>
-                    <p>도와드릴 수 있는 것:</p>
-                    <ul>
-                        <li><strong>레시피</strong> - 요리 문화, 재료 또는 식이요법으로 검색</li>
-                        <li><strong>요리 팁</strong> - 기술, 타이밍, 온도</li>
-                        <li><strong>대체재</strong> - 재료 대체품 찾기</li>
-                        <li><strong>단위 변환</strong> - 컵, 그램, 스푼 등</li>
-                        <li><strong>식단 계획</strong> - 주간 메뉴 만들기</li>
-                    </ul>
-                    <p style="margin-top: 15px;">오늘 무엇을 요리하고 싶으신가요?</p>`,
-                kimchi: `<h2>🍚 김치볶음밥</h2>
-                    <p><em>최고의 한국식 컴포트 푸드 - 빠르고, 맛있고, 남은 밥 활용에 완벽합니다.</em></p>
-                    <p><strong>요리:</strong> 한식 | <strong>난이도:</strong> 쉬움<br><strong>준비:</strong> 10분 | <strong>조리:</strong> 15분 | <strong>인분:</strong> 2인분</p>
-                    <h3>재료</h3>
-                    <ul><li>밥 3공기 (하루 지난 밥 추천)</li><li>묵은 김치 1컵, 썰기</li><li>김치 국물 2큰술</li><li>삼겹살 또는 베이컨 100g</li><li>식용유 2큰술</li><li>참기름 1큰술</li><li>간장 1큰술</li><li>파 2줄기, 송송 썰기</li><li>토핑용 계란 2개</li></ul>
-                    <h3>조리법</h3>
-                    <ol><li>큰 팬에 기름을 두르고 강불에 달구기</li><li>삼겹살을 넣고 바삭하게 익히기</li><li>썬 김치를 넣고 2-3분 볶기</li><li>차가운 밥을 넣고 덩어리를 풀기</li><li>김치 국물과 간장을 넣고 잘 섞기</li><li>참기름을 뿌리고 파 넣기</li><li>계란후라이를 올려서 서빙!</li></ol>
-                    <p>💡 <strong>팁:</strong> 하루 지난 냉장 밥이 가장 좋아요!</p>`,
-                italian: `<h2>🇮🇹 이탈리안 레시피</h2>
-                    <p>2개의 이탈리안 레시피를 찾았습니다:</p>
-                    <h3>파스타 알리오 올리오</h3>
-                    <p>클래식 마늘과 올리브유 파스타 - 간단하고 맛있어요!</p>
-                    <p>⏱️ 20분 | 📊 쉬움 | 🍽️ 4인분</p>
-                    <h3>시저 샐러드</h3>
-                    <p>바삭한 로메인과 크리미한 드레싱, 크루통</p>
-                    <p>⏱️ 25분 | 📊 쉬움 | 🍽️ 4인분</p>
-                    <p><em>전체 레시피를 원하시면 말씀해주세요!</em></p>`,
-                korean: `<h2>🇰🇷 한국 요리 레시피</h2>
-                    <h3>김치볶음밥</h3>
-                    <p>묵은 김치로 만드는 빠르고 맛있는 볶음밥 - 남은 밥 활용에 완벽!</p>
-                    <p>⏱️ 25분 | 📊 쉬움 | 🍽️ 2인분</p>
-                    <p><em>전체 레시피를 원하시면 말씀해주세요!</em></p>`,
-                substitutes: `<h2>🔄 계란 대체재</h2>
-                    <ul><li><strong>아마씨 에그</strong> - 아마씨 가루 1큰술 + 물 3큰술</li><li><strong>치아씨 에그</strong> - 치아씨 1큰술 + 물 3큰술</li><li><strong>으깬 바나나</strong> - 계란 1개당 1/4컵</li><li><strong>사과소스</strong> - 계란 1개당 1/4컵</li><li><strong>아쿠아파바</strong> - 3큰술 (병아리콩 물)</li></ul>`,
-                conversions: `<h2>📏 요리 계량 단위 변환</h2>
-                    <h3>부피</h3><p>1컵 = 240ml = 16큰술<br>1큰술 = 15ml = 3작은술<br>1작은술 = 5ml</p>
-                    <h3>무게</h3><p>1온스 = 28그램<br>1파운드 = 454그램</p>
-                    <h3>온도</h3><p>350°F = 175°C<br>400°F = 200°C<br>425°F = 220°C</p>`,
-                default: `<h2>👨‍🍳 요리 어시스턴트</h2>
-                    <p>도와드릴 수 있는 것:</p>
-                    <ul><li><strong>🍳 레시피</strong> - 요리 문화나 재료로 검색</li><li><strong>🔄 대체재</strong> - 대체품 찾기</li><li><strong>📏 단위 변환</strong> - 컵, 그램, 온도</li><li><strong>⏱️ 타이밍</strong> - 조리 시간</li></ul>
-                    <p><strong>시도해보세요:</strong> "이탈리안 레시피 보여줘" 또는 "계란 대신 뭘 쓸 수 있나요?"</p>`
-            },
-            ja: {
-                welcome: `<h2>👨‍🍳 クッキングアシスタントへようこそ！</h2>
-                    <p>お手伝いできること：</p>
-                    <ul>
-                        <li><strong>レシピ</strong> - 料理の種類、材料、食事制限で検索</li>
-                        <li><strong>料理のヒント</strong> - テクニック、タイミング、温度</li>
-                        <li><strong>代替品</strong> - 材料の代替品を見つける</li>
-                        <li><strong>単位変換</strong> - カップ、グラム、大さじなど</li>
-                        <li><strong>食事計画</strong> - 週間メニューを作成</li>
-                    </ul>
-                    <p style="margin-top: 15px;">今日は何を作りたいですか？</p>`,
-                kimchi: `<h2>🍚 キムチチャーハン</h2>
-                    <p><em>最高の韓国コンフォートフード - 素早く、風味豊かで、残りご飯の活用に最適。</em></p>
-                    <p><strong>料理：</strong>韓国 | <strong>難易度：</strong>簡単<br><strong>準備：</strong>10分 | <strong>調理：</strong>15分 | <strong>人数：</strong>2人分</p>
-                    <h3>材料</h3>
-                    <ul><li>ご飯 3杯（前日の冷ご飯推奨）</li><li>熟成キムチ 1カップ、刻む</li><li>キムチの汁 大さじ2</li><li>豚バラ肉またはベーコン 100g</li><li>サラダ油 大さじ2</li><li>ごま油 大さじ1</li><li>醤油 大さじ1</li><li>ネギ 2本、小口切り</li><li>トッピング用卵 2個</li></ul>
-                    <h3>作り方</h3>
-                    <ol><li>大きなフライパンに油を熱して強火に</li><li>豚肉を入れてカリカリになるまで炒める</li><li>刻んだキムチを入れて2-3分炒める</li><li>冷ご飯を入れて、ほぐす</li><li>キムチの汁と醤油を入れてよく混ぜる</li><li>ごま油をかけて、ネギを加える</li><li>目玉焼きを乗せて完成！</li></ol>
-                    <p>💡 <strong>ヒント：</strong>前日の冷蔵ご飯が一番です！</p>`,
-                italian: `<h2>🇮🇹 イタリアンレシピ</h2>
-                    <p>2つのイタリアンレシピが見つかりました：</p>
-                    <h3>パスタ アーリオ・オーリオ</h3>
-                    <p>クラシックなガーリックとオリーブオイルのパスタ - シンプルで美味しい！</p>
-                    <p>⏱️ 20分 | 📊 簡単 | 🍽️ 4人分</p>
-                    <h3>シーザーサラダ</h3>
-                    <p>シャキシャキロメインとクリーミードレッシング、クルトン</p>
-                    <p>⏱️ 25分 | 📊 簡単 | 🍽️ 4人分</p>
-                    <p><em>詳しいレシピを聞いてください！</em></p>`,
-                korean: `<h2>🇰🇷 韓国料理レシピ</h2>
-                    <h3>キムチチャーハン</h3>
-                    <p>熟成キムチで作る素早くて風味豊かなチャーハン - 残りご飯の活用に最適！</p>
-                    <p>⏱️ 25分 | 📊 簡単 | 🍽️ 2人分</p>
-                    <p><em>詳しいレシピを聞いてください！</em></p>`,
-                substitutes: `<h2>🔄 卵の代替品</h2>
-                    <ul><li><strong>フラックスエッグ</strong> - 亜麻仁粉 大さじ1 + 水 大さじ3</li><li><strong>チアエッグ</strong> - チアシード 大さじ1 + 水 大さじ3</li><li><strong>潰したバナナ</strong> - 卵1個につき1/4カップ</li><li><strong>アップルソース</strong> - 卵1個につき1/4カップ</li><li><strong>アクアファバ</strong> - 大さじ3（ひよこ豆の茹で汁）</li></ul>`,
-                conversions: `<h2>📏 料理の計量単位変換</h2>
-                    <h3>容量</h3><p>1カップ = 240ml = 大さじ16<br>大さじ1 = 15ml = 小さじ3<br>小さじ1 = 5ml</p>
-                    <h3>重量</h3><p>1オンス = 28グラム<br>1ポンド = 454グラム</p>
-                    <h3>温度</h3><p>350°F = 175°C<br>400°F = 200°C<br>425°F = 220°C</p>`,
-                default: `<h2>👨‍🍳 クッキングアシスタント</h2>
-                    <p>お手伝いできること：</p>
-                    <ul><li><strong>🍳 レシピ</strong> - 料理の種類や材料で検索</li><li><strong>🔄 代替品</strong> - 代替品を見つける</li><li><strong>📏 単位変換</strong> - カップ、グラム、温度</li><li><strong>⏱️ タイミング</strong> - 調理時間</li></ul>
-                    <p><strong>試してみて：</strong>「イタリアンレシピを見せて」または「卵の代わりに何が使えますか？」</p>`
-            }
-        };
+        let currentLang = 'en';
 
         function setLanguage(lang) {
             currentLang = lang;
-            const t = i18n[lang];
+            const texts = i18n[lang];
 
-            document.querySelectorAll('.lang-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.textContent === lang.toUpperCase());
+            Object.keys(texts).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    if (key === 'heroTitle') {
+                        element.innerHTML = texts[key];
+                    } else {
+                        element.textContent = texts[key];
+                    }
+                }
             });
 
-            document.getElementById('title').textContent = t.title;
-            document.getElementById('subtitle').textContent = t.subtitle;
-            document.getElementById('chat-title').textContent = t.chatTitle;
-            document.getElementById('messageInput').placeholder = t.placeholder;
-            document.getElementById('sendBtn').textContent = t.send;
-            document.getElementById('featured-title').textContent = t.featuredTitle;
-            document.getElementById('cuisines-title').textContent = t.cuisinesTitle;
-            document.getElementById('feature1-title').textContent = t.feature1Title;
-            document.getElementById('feature1-desc').textContent = t.feature1Desc;
-            document.getElementById('feature2-title').textContent = t.feature2Title;
-            document.getElementById('feature2-desc').textContent = t.feature2Desc;
-            document.getElementById('feature3-title').textContent = t.feature3Title;
-            document.getElementById('feature3-desc').textContent = t.feature3Desc;
-            document.getElementById('feature4-title').textContent = t.feature4Title;
-            document.getElementById('feature4-desc').textContent = t.feature4Desc;
-            document.getElementById('footer-text').innerHTML = t.footer;
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
 
-            // Quick buttons
-            document.getElementById('quick-actions').innerHTML = t.quickButtons.map(btn =>
-                `<button class="quick-btn" onclick="sendQuickMessage('${btn.msg}')">${btn.text}</button>`
-            ).join('');
-
-            // Cuisine buttons
-            document.getElementById('cuisines-btns').innerHTML = t.cuisineButtons.map(btn =>
-                `<button class="quick-btn" onclick="sendQuickMessage('${btn.msg}')">${btn.text}</button>`
-            ).join('');
-
-            // Featured recipes
-            document.getElementById('featured-recipes').innerHTML = t.featuredRecipes.map(r => `
-                <div class="recipe-item" onclick="sendQuickMessage('${r.msg}')">
-                    <h4>${r.name}</h4>
-                    <p>${r.desc}</p>
-                    <div class="recipe-meta"><span>${r.cuisine}</span><span>⏱️ ${r.time}</span></div>
-                </div>
-            `).join('');
-
-            chatMessages.innerHTML = '';
-            addMessage(responses[lang].welcome, false);
+            localStorage.setItem('preferredLanguage', lang);
         }
 
-        function getResponse(message) {
-            const lower = message.toLowerCase();
-            const r = responses[currentLang];
+        document.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('preferredLanguage');
+            if (saved && i18n[saved]) {
+                const btn = document.querySelector(`.lang-btn[onclick="setLanguage('${saved}')"]`);
+                if (btn) btn.click();
+            }
+        });
 
-            if (lower.includes('kimchi') || lower.includes('김치') || lower.includes('キムチ')) return r.kimchi;
-            if (lower.includes('italian') || lower.includes('이탈리안') || lower.includes('イタリアン')) return r.italian;
-            if (lower.includes('korean') || lower.includes('한국') || lower.includes('한식') || lower.includes('韓国')) return r.korean;
-            if (lower.includes('substitute') || lower.includes('replace') || lower.includes('대체') || lower.includes('대신') || lower.includes('代替') || lower.includes('代わり')) return r.substitutes;
-            if (lower.includes('convert') || lower.includes('measurement') || lower.includes('단위') || lower.includes('変換') || lower.includes('計量')) return r.conversions;
-
-            return r.default;
-        }
-
-        function addMessage(content, isUser = false) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'message-content';
-            contentDiv[isUser ? 'textContent' : 'innerHTML'] = content;
-            messageDiv.appendChild(contentDiv);
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function showTyping() {
-            const typingDiv = document.createElement('div');
-            typingDiv.className = 'message bot';
-            typingDiv.id = 'typing';
-            typingDiv.innerHTML = `<div class="message-content"><div class="typing-indicator"><span></span><span></span><span></span></div></div>`;
-            chatMessages.appendChild(typingDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function removeTyping() {
-            const typing = document.getElementById('typing');
-            if (typing) typing.remove();
-        }
-
-        function sendMessage() {
-            const message = messageInput.value.trim();
-            if (!message) return;
-            addMessage(message, true);
-            messageInput.value = '';
-            showTyping();
-            setTimeout(() => {
-                removeTyping();
-                addMessage(getResponse(message), false);
-            }, 800 + Math.random() * 400);
-        }
-
-        function sendQuickMessage(message) {
-            messageInput.value = message;
-            sendMessage();
-        }
-
-        function handleKeyPress(event) {
-            if (event.key === 'Enter') sendMessage();
-        }
-
-        setLanguage('en');
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
     </script>
 </body>
 </html>
